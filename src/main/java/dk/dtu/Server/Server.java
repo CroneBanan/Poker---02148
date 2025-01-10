@@ -11,7 +11,7 @@ public class Server {
     public static int port = 7324;
     public static String generalUri = "tcp://" + ip + ":" + port + "/?conn";
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws Exception {
         SpaceRepository repository = new SpaceRepository();
 
         SequentialSpace player1 = new SequentialSpace();
@@ -21,10 +21,19 @@ public class Server {
         SequentialSpace gameState = new SequentialSpace();
         repository.add("gameState", gameState);
 
+
         repository.addGate(generalUri);
-        Poker game = new Poker("tcp://" + ip + ":" + port);
-        game.run();
-        gameState.put("hej");
+
+        Lobby lobby = new Lobby("tcp://" + ip + ":" + port, repository);
+        lobby.open();
+
+       // Poker game = new Poker("tcp://" + ip + ":" + port);
+        //game.run();
+       // gameState.put("hej");
+    }
+
+    public void handleUserInput(){
+        //TODO
     }
 
 
