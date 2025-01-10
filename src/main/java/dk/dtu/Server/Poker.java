@@ -33,32 +33,25 @@ public class Poker implements Runnable {
 
     }
 
-    public void startGame() throws IOException, InterruptedException {
-        initializeDeck();
+    public void startGame() throws Exception {
+        Deck deck = new Deck();
         this.player1 = new RemoteSpace(uri + "/player1?conn");
         this.player2 = new RemoteSpace(uri + "/player2?conn");
 
-        System.out.println(deck.get(0).toString());
-        player1.put("Cards", deck.get(0));
-        deck.remove(0);
-
-        System.out.println(deck.get(0).toString());
-        player1.put("Cards", deck.get(0));
-        deck.remove(0);
-
-        System.out.println(deck.get(0).toString());
-        player2.put("Cards", deck.get(0));
-        deck.remove(0);
-
-        System.out.println(deck.get(0).toString());
-        player2.put("Cards", deck.get(0));
-        deck.remove(0);
+        Card card1 = deck.drawCard();
+        System.out.println(card1.toString());
+        card1 = deck.drawCard();
+        System.out.println(card1.toString());
+        card1 = deck.drawCard();
+        System.out.println(card1.toString());
+        card1 = deck.drawCard();
+        System.out.println(card1.toString());
     }
     @Override
     public void run() {
         try {
             startGame();
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
