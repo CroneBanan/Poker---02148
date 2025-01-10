@@ -21,7 +21,7 @@ public class Client {
         space = new RemoteSpace(uri + "/gameState?conn");
         RemoteSpace channel = connect(player1, uri);
         ready(channel);
-        disconnectFromLobby(channel);
+        //disconnectFromLobby(channel);
        // String test = (String) space.get(new ActualField("hej"))[0];
 
         //System.out.println(test);

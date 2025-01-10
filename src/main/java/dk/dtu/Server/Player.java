@@ -1,5 +1,7 @@
 package dk.dtu.Server;
 
+import org.jspace.SequentialSpace;
+
 public class Player {
     public static int incrementer = 0;
     private int id;
@@ -8,6 +10,7 @@ public class Player {
     private Card[] hand;
     private String status;
     private String uriPart;
+    private SequentialSpace channel;
 
     public Player(String name, int cash) {
         setCash(cash);
@@ -15,6 +18,7 @@ public class Player {
         setName(name);
         setStatus("playing");
         setUriPart();
+        this.channel = new SequentialSpace();
     }
 
     public Player(String name,String status) {
@@ -22,6 +26,7 @@ public class Player {
         setId();
         setStatus(status);
         setUriPart();
+        this.channel = new SequentialSpace();
     }
 
 
@@ -72,5 +77,9 @@ public class Player {
 
     public String getUriPart() {
         return uriPart;
+    }
+
+    public SequentialSpace getChannel() {
+        return channel;
     }
 }

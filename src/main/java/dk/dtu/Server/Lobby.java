@@ -24,20 +24,24 @@ public class Lobby{
         while(true){
             System.out.println("waiting for player to connect");
             Object[] t = space.get(new ActualField("connection request"), new FormalField(String.class));
-            Player player = new Player(t[1].toString(), "connected");
-            players.add(player);
-            Space playerChannel = new SequentialSpace();
-            spaceRepository.add(player.getUriPart(),playerChannel);
+            Player player = addPlayer(t[1].toString());
             space.put("Player connected",player.getUriPart(), player.getName());
             System.out.println("player "+ player.getName() + " connected");
 
-            handlePlayerChannel(playerChannel, player);
+            handlePlayerChannel(player);
         }
     }
 
-    public void handlePlayerChannel(Space playerChannel,Player player) throws Exception {
+    public Player addPlayer(String name) {
+        Player player = new Player(name, "connected");
+        players.add(player);
+        spaceRepository.add(player.getUriPart(),player.getChannel());
+        return player;
+    }
+
+    public void handlePlayerChannel(Player player) throws Exception {
         while(true){
-            Object[] t = playerChannel.get(new ActualField("lobby"), new FormalField(String.class));
+            Object[] t = player.getChannel().get(new ActualField("lobby"), new FormalField(String.class));
             if(t[1].equals("ready")){
                 System.out.println("ready");
                 player.setStatus("ready");
