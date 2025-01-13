@@ -30,7 +30,13 @@ public class Poker implements Runnable {
 
     }
 
+    public boolean isActionValid(Player player, String action) {
+        return true;
+        //TODO: inputs er bare et gæt, måske skal der også være en værdi tilknyttet fx et raise.
+    }
+
     public void setBlinds() {
+        //THP: bør alt det her ikke ske på activePlayers?????
         Player first = players.get(0);
         RemoteSpace firstSpace = playerSpaces.get(0);
         first.makeBet(10);
@@ -44,7 +50,9 @@ public class Poker implements Runnable {
         highestBet = 20;
     }
 
+    //THP: Me no understand this function
     public boolean checkRound() {
+        //THP: Bør highest bet ikke opdateres efter hvert bet?
         activePlayers.removeIf(p -> p.getStatus().equals("Fold"));
         for (Player p : activePlayers) {
             if (highestBet < p.getBet()) {
