@@ -40,7 +40,7 @@ public class Poker implements Runnable {
         players.remove(0);
         players.add(players.size(), first);
         playerSpaces.remove(0);
-        playerSpaces.add(players.size(), firstSpace);
+        playerSpaces.add(playerSpaces.size(), firstSpace);
         highestBet = 20;
     }
 
