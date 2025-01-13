@@ -72,14 +72,14 @@ public class Player {
     }
 
     public void makeBet(int bet) {
-        if (validBet(bet)) {
+        if (enoughCash(bet)) {
             this.cashInCents -= bet;
             this.bet += bet;
             isAllIn();
         }
     }
 
-    public boolean validBet(int bet) {
+    public boolean enoughCash(int bet) {
         return cashInCents >= bet;
     }
 

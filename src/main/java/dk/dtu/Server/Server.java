@@ -27,6 +27,7 @@ public class Server {
         Poker game = new Poker("tcp://" + ip + ":" + port);
         game.run();
         gameState.put("hej");
+        System.out.println("Bastian is cool");
     }
 
 

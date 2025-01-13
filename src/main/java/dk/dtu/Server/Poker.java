@@ -26,6 +26,14 @@ public class Poker implements Runnable {
         this.uri = uri;
         this.pool = 0;
     }
+    public void doPlayerTurn() {
+        //getTurnToken
+        //getAction
+        //if(isValidAction)
+        // then: do player action() and put 'Valid Action'
+        //else put 'Invalid action'
+        //putTurnToken
+    }
 
     public void playerAction(Player p, String actionType, int val) throws InterruptedException {
         switch (actionType) {
@@ -53,9 +61,21 @@ public class Poker implements Runnable {
         }
     }
 
-    public boolean isActionValid(Player player, String action) {
+    public boolean isActionValid(Player p, String actionType, int val) {
+        switch (actionType) {
+            case "Fold":
+                return true;
+            case "Raise":
+                return (p.enoughCash(val) && val > highestBet);
+            case "All In":
+                return true;
+            case "Check":
+                return (p.getBet() == highestBet);
+            case "Match":
+                return (p.enoughCash(highestBet));
+        }
         return true;
-        //TODO: inputs er bare et gæt, måske skal der også være en værdi tilknyttet fx et raise.
+
     }
 
     public void setBlinds() {
