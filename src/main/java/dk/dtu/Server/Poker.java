@@ -1,10 +1,13 @@
 package dk.dtu.Server;
 
 import dk.dtu.Common.Card;
+import dk.dtu.Common.ComparisonResult;
+import dk.dtu.Common.HandComparator;
+import dk.dtu.Common.IHandComparator;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jspace.ActualField;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
-import org.jspace.SpaceRepository;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,7 +20,7 @@ public class Poker implements Runnable {
     private CircularList<Player> players = new CircularList();
     private CircularList<Player> blindOrder = new CircularList();
     //private ArrayList<Player> activePlayers = players;
-    private int pool;
+    private int pot;
     private ShuffledDeck deck;
     private Card[] cardsInPlay;
     private int highestBet;
@@ -27,7 +30,7 @@ public class Poker implements Runnable {
         this.space = new RemoteSpace(uri + "/gameState?conn");
         this.turn = new RemoteSpace(uri + "/turn?conn");
         this.uri = uri;
-        this.pool = 0;
+        this.pot = 0;
     }
     public void doPlayerTurn() throws InterruptedException {
         Player p = players.getNext();
@@ -70,14 +73,14 @@ public class Poker implements Runnable {
                 break;
             case "Raise":
                 p.makeBet(val);
-                pool += val;
+                pot += val;
                 p.setStatus("Raise");
                 if(highestBet < val) {
                     setHighestBet(val);
                 }
                 break;
             case "All In":
-                pool += p.getCash();
+                pot += p.getCash();
                 p.makeBet(p.getCash());
                 p.setStatus("All In");
                 if(highestBet < val) {
@@ -112,7 +115,6 @@ public class Poker implements Runnable {
             players.getNext();
         }
         turn.put(player.getId());
-        System.out.println("Starting player:" + player.getName());
         do {
             //take turn
             doPlayerTurn();
@@ -134,9 +136,9 @@ public class Poker implements Runnable {
 
     public void setBlinds() {
         blindOrder.getNext().makeBet(10);
-        pool += 10;
+        pot += 10;
         blindOrder.get(0).makeBet(20);
-        pool += 20;
+        pot += 20;
         setHighestBet(20);
     }
 
@@ -150,6 +152,33 @@ public class Poker implements Runnable {
         }
     }
 
+    public ArrayList<Player> findWinners() {
+        ArrayList<Player> winners = new ArrayList<>();
+        Card[] player1Hand = ArrayUtils.addAll(players.get(0).getHand(), cardsInPlay);
+        Card[] player2Hand = ArrayUtils.addAll(players.get(1).getHand(), cardsInPlay);
+
+        IHandComparator comparator = new HandComparator();
+        ComparisonResult result = comparator.compareFinalHands(player1Hand, player2Hand);
+        if (result == ComparisonResult.Larger) {
+            winners.add(players.get(0));
+        } else if (result == ComparisonResult.Smaller) {
+            winners.add(players.get(1));
+        } else {
+            winners.add(players.get(0));
+            winners.add(players.get(1));
+        }
+        return winners;
+    }
+
+    public void distributePot(ArrayList<Player> winners) {
+        for (Player p : winners) {
+            p.addCash(pot / winners.size());
+            System.out.println(p.getName() + " Gets:");
+            System.out.println(pot / winners.size());
+        }
+        pot = 0;
+    }
+
     public void startGame() throws Exception {
         deck = new ShuffledDeck();
         List<Player> ps = new ArrayList<>();
@@ -157,36 +186,28 @@ public class Poker implements Runnable {
         ps.add(new Player("Shannon", 1000000, "/player2"));
         ps.get(0).setSpace(uri + ps.get(0).getUriPart() + "?conn");
         ps.get(1).setSpace(uri + ps.get(1).getUriPart() + "?conn");
-
-        System.out.println(ps.get(0).getUriPart());
-        System.out.println(uri);
         ps.get(0).getSpace().put("Action","Raise",10);
 
         for (int i = 0; i < 10; i++) {
             ps.get(0).getSpace().put("Action","Check",0);
             ps.get(1).getSpace().put("Action","Check",0);
         }
-        //ps.get(1).setSpace(uri + players.get(1).getUriPart() + "?conn");
         players.setObjects(ps);
         blindOrder.setObjects(ps);
 
         setBlinds();
-        System.out.println(1);
         dealCards();
-        System.out.println(2);
         bettingRound();
-        System.out.println(3);
         flop();
-        System.out.println(4);
         bettingRound();
-        System.out.println(5);
         turn();
-        System.out.println(6);
         bettingRound();
-        System.out.println(7);
         river();
-        System.out.println(8);
         bettingRound();
+
+        ArrayList<Player> winners = findWinners();
+        distributePot(winners);
+
         System.out.println("DONE");
         space.put("Flop", cardsInPlay);
 

@@ -105,4 +105,8 @@ public class Player {
             setStatus("All in");
         }
     }
+
+    public void addCash(int winnings) {
+        this.cashInCents += winnings;
+    }
 }
