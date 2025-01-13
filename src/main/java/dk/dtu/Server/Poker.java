@@ -8,13 +8,14 @@ import org.jspace.SpaceRepository;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Poker implements Runnable {
     private String uri;
     private RemoteSpace space;
     private RemoteSpace turn;
     private ArrayList<Player> players = new ArrayList<>();
-    private ArrayList<Player> activePlayers = players;
+    //private ArrayList<Player> activePlayers = players;
     private int pool;
     private ShuffledDeck deck;
     private Card[] cardsInPlay;
@@ -27,6 +28,7 @@ public class Poker implements Runnable {
         this.pool = 0;
     }
     public void doPlayerTurn() {
+        //isPlayerPlaying
         //getTurnToken
         //getAction
         //if(isValidAction)
@@ -39,7 +41,6 @@ public class Poker implements Runnable {
         switch (actionType) {
             case "Fold":
                 p.setStatus("Fold");
-                this.activePlayers.remove(0);
                 break;
             case "Raise":
                 p.makeBet(val);
@@ -90,7 +91,7 @@ public class Poker implements Runnable {
     }
 
     public boolean checkRound() {
-        for (Player p : activePlayers) {
+        for (Player p : activePlayers()) {
             if (highestBet != p.getBet()) {
                 if (!p.getStatus().equals("All in")) {
                     return false;
@@ -98,6 +99,10 @@ public class Poker implements Runnable {
             }
         }
         return true;
+    }
+
+    public List<Player> activePlayers() {
+        return players.stream().filter(p -> !p.getStatus().equals("Fold")).toList();
     }
 
     public void dealCards() throws Exception {
