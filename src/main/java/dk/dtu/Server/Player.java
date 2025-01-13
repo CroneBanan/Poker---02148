@@ -87,6 +87,10 @@ public class Player {
         return bet;
     }
 
+    public void setBet(int bet) {
+        this.bet = bet;
+    }
+
     public void fold() {
         setStatus("Fold");
     }

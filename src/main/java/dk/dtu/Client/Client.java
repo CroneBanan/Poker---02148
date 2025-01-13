@@ -17,14 +17,16 @@ public class Client {
         String uri = "tcp://" + ip + ":" + port;
         String player1 = "player1";
 
-        space = new RemoteSpace(uri + "/gameState?conn");
-        player = new RemoteSpace(uri + "/" + player1 + "?conn");;
-        String test = (String) space.get(new ActualField("hej"))[0];
+        space = new RemoteSpace("tcp://localhost:7324" + "/player1?conn");
+        space.put("Action","Check",0);
 
-        System.out.println(test);
+        //player = new RemoteSpace(uri + "/" + player1 + "?conn");;
+        //String test = (String) space.get(new ActualField("hej"))[0];
 
-        Object[] cards = player.get(new ActualField("Cards"), new FormalField(Card.class));
-        System.out.println(cards[0].toString());
-        System.out.println(cards[1].toString());
+        //System.out.println(test);
+
+        //Object[] cards = player.get(new ActualField("Cards"), new FormalField(Card.class));
+        //System.out.println(cards[0].toString());
+        //System.out.println(cards[1].toString());
     }
 }

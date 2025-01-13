@@ -59,7 +59,7 @@ public class Poker implements Runnable {
     }
 
     public void signalGameStateChange() {
-        //SKAL IMPLEMENTERES
+        //TODO: SKAL IMPLEMENTERES
         return;
     }
 
@@ -70,12 +70,14 @@ public class Poker implements Runnable {
                 break;
             case "Raise":
                 p.makeBet(val);
+                pool += val;
                 p.setStatus("Raise");
                 if(highestBet < val) {
                     setHighestBet(val);
                 }
                 break;
             case "All In":
+                pool += p.getCash();
                 p.makeBet(p.getCash());
                 p.setStatus("All In");
                 if(highestBet < val) {
@@ -93,7 +95,7 @@ public class Poker implements Runnable {
             case "Fold":
                 return true;
             case "Raise":
-                return (p.enoughCash(val) && val > highestBet);
+                return (p.enoughCash(val) && (val + p.getBet()) >= highestBet);
             case "All In":
                 return true;
             case "Check":
@@ -109,12 +111,20 @@ public class Poker implements Runnable {
         while (players.get(0).getId() != (player.getId())) {
             players.getNext();
         }
-
+        turn.put(player.getId());
+        System.out.println("Starting player:" + player.getName());
         do {
             //take turn
             doPlayerTurn();
             turnsSinceHighestBetChange += 1;
-        } while (turnsSinceHighestBetChange == players.toList().size());
+        } while (turnsSinceHighestBetChange != players.toList().size());
+        setHighestBet(0);
+
+
+        //clear bets
+        for (Player p : players.toList()) {
+            p.setBet(0);
+        }
     }
 
     public void setHighestBet(int highestBet) {
@@ -145,16 +155,39 @@ public class Poker implements Runnable {
         List<Player> ps = new ArrayList<>();
         ps.add(new Player("Christian", 10000, "/player1"));
         ps.add(new Player("Shannon", 1000000, "/player2"));
-        ps.get(0).setSpace(uri + players.get(0).getUriPart() + "?conn");
-        ps.get(1).setSpace(uri + players.get(1).getUriPart() + "?conn");
+        ps.get(0).setSpace(uri + ps.get(0).getUriPart() + "?conn");
+        ps.get(1).setSpace(uri + ps.get(1).getUriPart() + "?conn");
+
+        System.out.println(ps.get(0).getUriPart());
+        System.out.println(uri);
+        ps.get(0).getSpace().put("Action","Raise",10);
+
+        for (int i = 0; i < 10; i++) {
+            ps.get(0).getSpace().put("Action","Check",0);
+            ps.get(1).getSpace().put("Action","Check",0);
+        }
+        //ps.get(1).setSpace(uri + players.get(1).getUriPart() + "?conn");
         players.setObjects(ps);
         blindOrder.setObjects(ps);
 
         setBlinds();
+        System.out.println(1);
         dealCards();
-
-
+        System.out.println(2);
+        bettingRound();
+        System.out.println(3);
         flop();
+        System.out.println(4);
+        bettingRound();
+        System.out.println(5);
+        turn();
+        System.out.println(6);
+        bettingRound();
+        System.out.println(7);
+        river();
+        System.out.println(8);
+        bettingRound();
+        System.out.println("DONE");
         space.put("Flop", cardsInPlay);
 
 
