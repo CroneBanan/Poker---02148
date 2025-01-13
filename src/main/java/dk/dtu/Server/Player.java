@@ -1,6 +1,10 @@
 package dk.dtu.Server;
 
 import org.jspace.SequentialSpace;
+import dk.dtu.Common.Card;
+import org.jspace.RemoteSpace;
+
+import java.io.IOException;
 
 public class Player {
     public static int incrementer = 0;
@@ -10,13 +14,17 @@ public class Player {
     private Card[] hand;
     private String status;
     private String uriPart;
-    private SequentialSpace channel;
-
+    private Space channel;
+    private int bet;
     public Player(String name, int cash) {
+    
+
+    public Player(String name, int cash, String uriPart) {
         setCash(cash);
         setId();
         setName(name);
         setStatus("playing");
+
         setUriPart();
         this.channel = new SequentialSpace();
     }
@@ -29,6 +37,15 @@ public class Player {
         this.channel = new SequentialSpace();
     }
 
+        this.uriPart = uriPart;
+    }
+
+    public void setSpace(String uri) throws IOException {
+        this.space = new RemoteSpace(uri);
+    }
+    public RemoteSpace getSpace() {
+        return this.space;
+    }
 
     public void setCash(int dollars) {
         this.cashInCents = dollars * 100;
@@ -66,6 +83,34 @@ public class Player {
         return id;
     }
 
+    public String getUriPart() {
+        return uriPart;
+    }
+
+    public void makeBet(int bet) {
+        if (enoughCash(bet)) {
+            this.cashInCents -= bet;
+            this.bet += bet;
+            isAllIn();
+        }
+    }
+
+    public boolean enoughCash(int bet) {
+        return cashInCents >= bet;
+    }
+
+    public int getBet() {
+        return bet;
+    }
+
+    public void setBet(int bet) {
+        this.bet = bet;
+    }
+
+    public void fold() {
+        setStatus("Fold");
+    }
+
     private void setId() {
         this.id = incrementer;
         incrementer++;
@@ -81,5 +126,13 @@ public class Player {
 
     public SequentialSpace getChannel() {
         return channel;
+    public void isAllIn() {
+        if (bet == cashInCents) {
+            setStatus("All in");
+        }
+    }
+
+    public void addCash(int winnings) {
+        this.cashInCents += winnings;
     }
 }

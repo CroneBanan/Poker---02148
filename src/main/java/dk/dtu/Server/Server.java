@@ -20,6 +20,8 @@ public class Server {
         repository.add("player2", player2);
         SequentialSpace gameState = new SequentialSpace();
         repository.add("gameState", gameState);
+        SequentialSpace turnSpace = new SequentialSpace();
+        repository.add("turn", turnSpace);
 
 
         repository.addGate(generalUri);
@@ -34,6 +36,10 @@ public class Server {
 
     public void handleUserInput(){
         //TODO
+        Poker game = new Poker("tcp://" + ip + ":" + port);
+        game.run();
+        gameState.put("hej");
+        System.out.println("Bastian is cool");
     }
 
 
