@@ -7,29 +7,46 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Lobby{
-    SequentialSpace space;
-    List<Player> players = new ArrayList<>();
-    SequentialSpace readySpace;
-    SpaceRepository spaceRepository;
+    private SequentialSpace space;
+    private List<Player> players;
+    private SequentialSpace readySpace;
+    private SequentialSpace state;
+    private SpaceRepository spaceRepository;
 
     public Lobby(String uri, SpaceRepository spaceRepository) throws IOException {
         this.space = new SequentialSpace();
         this.spaceRepository = spaceRepository;
         spaceRepository.add("lobby", space);
         this.readySpace = new SequentialSpace();
+        this.state = new SequentialSpace();
+        players = new ArrayList<>();
     }
 
     public void open() throws IOException, Exception {
         System.out.println("open lobby");
-        while(true){
-            System.out.println("waiting for player to connect");
-            Object[] t = space.get(new ActualField("connection request"), new FormalField(String.class));
-            Player player = addPlayer(t[1].toString());
-            space.put("Player connected",player.getUriPart(), player.getName());
-            System.out.println("player "+ player.getName() + " connected");
+        state.put("Open");
+        do {
+            Object[] t = space.getp(new ActualField("connection request"), new FormalField(String.class));
+            if (t != null) {
+                System.out.println("waiting for player to connect");
+                Player player = addPlayer(t[1].toString());
+                space.put("Player connected",
+                        player.getUriPart(),
+                        player.getName()
+                );
+                System.out.println("player "+ player.getName() + " connected");
+                new Thread(new ChannelHandler(player,readySpace,state)).start();
+            }
+        } while (!ArePlayersReady());
+        state.get(new ActualField("Open"));
+    }
 
-            handlePlayerChannel(player);
-        }
+    private boolean ArePlayersReady() {
+        int readyPlayers = readySpace.queryAll(
+                new FormalField(Integer.class),
+                new FormalField(String.class)
+        ).size();
+        return (readyPlayers >= 2 && readyPlayers == players.size());
     }
 
     public Player addPlayer(String name) {
@@ -39,20 +56,46 @@ public class Lobby{
         return player;
     }
 
-    public void handlePlayerChannel(Player player) throws Exception {
-        while(true){
-            Object[] t = player.getChannel().get(new ActualField("lobby"), new FormalField(String.class));
-            if(t[1].equals("ready")){
-                System.out.println("ready");
-                player.setStatus("ready");
-                readySpace.put(player.getId(),player.getName());
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+
+
+    private class ChannelHandler implements Runnable {
+        private Space readySpace;
+        private Space lobbyState;
+        Player player;
+        public ChannelHandler(Player player, Space readySpace,Space lobbyState) {
+            this.player = player;
+            this.readySpace = readySpace;
+            this.lobbyState = lobbyState;
+        }
+
+        @Override
+        public void run() {
+            try {
+                handlePlayerChannel();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-            if(t[1].equals("disconnect")){
-                System.out.println("disconnect");
-                player.setStatus("disconnected");
-                readySpace.getp(new ActualField(player.getId()), new ActualField(player.getName()));
-                players.remove(player);
-                break;
+        }
+
+        public void handlePlayerChannel() throws Exception {
+            while(lobbyState.queryp(new ActualField("Open")) != null){
+                Object[] t = player.getChannel().get(new ActualField("lobby"), new FormalField(String.class));
+                if(t[1].equals("ready")){
+                    System.out.println("ready");
+                    player.setStatus("ready");
+                    readySpace.put(player.getId(),player.getName());
+                }
+                if(t[1].equals("disconnect")){
+                    System.out.println("disconnect");
+                    player.setStatus("disconnected");
+                    readySpace.getp(new ActualField(player.getId()), new ActualField(player.getName()));
+                    players.remove(player);
+                    break;
+                }
             }
         }
     }

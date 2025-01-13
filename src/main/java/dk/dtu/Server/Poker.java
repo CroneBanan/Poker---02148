@@ -26,11 +26,21 @@ public class Poker implements Runnable {
     private int highestBet;
     private int turnsSinceHighestBetChange = 0;
 
-    public Poker(String uri) throws IOException {
+    public Poker(String uri, List<Player> players) throws Exception {
         this.space = new RemoteSpace(uri + "/gameState?conn");
         this.turn = new RemoteSpace(uri + "/turn?conn");
         this.uri = uri;
         this.pot = 0;
+
+        players.get(0).setSpace(uri + players.get(0).getUriPart() + "?conn");
+        players.get(1).setSpace(uri + players.get(1).getUriPart() + "?conn");
+        players.get(0).getSpace().put("Action","Raise",10);
+        for (int i = 0; i < 10; i++) {
+            players.get(0).getSpace().put("Action","Check",0);
+            players.get(1).getSpace().put("Action","Check",0);
+        }
+        this.players.setObjects(players);
+        this.blindOrder.setObjects(players);
     }
     public void doPlayerTurn() throws InterruptedException {
         Player p = players.getNext();

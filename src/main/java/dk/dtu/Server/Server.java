@@ -5,6 +5,7 @@ import org.jspace.SequentialSpace;
 import org.jspace.SpaceRepository;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Server {
     public static String ip = "localhost";
@@ -24,11 +25,13 @@ public class Server {
         repository.add("turn", turnSpace);
 
         repository.addGate(generalUri);
-        //Lobby lobby = new Lobby("tcp://" + ip + ":" + port, repository);
-        //lobby.open();
-        Poker game = new Poker("tcp://" + ip + ":" + port);
+        Lobby lobby = new Lobby("tcp://" + ip + ":" + port, repository);
+        lobby.open();
+        List<Player> players = lobby.getPlayers();
+        Poker game = new Poker("tcp://" + ip + ":" + port,players);
         game.run();
         System.out.println("Bastian is cool");
+
     }
 
 
