@@ -1,51 +1,107 @@
 package dk.dtu.Server;
 
+import dk.dtu.Common.Card;
+import org.jspace.ActualField;
 import org.jspace.RemoteSpace;
+import org.jspace.SpaceRepository;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class Poker implements Runnable {
     private String uri;
     private RemoteSpace space;
-    private RemoteSpace player1;
-    private RemoteSpace player2;
-    private ArrayList<Card> deck = new ArrayList<>();
+    private ArrayList<RemoteSpace> playerSpaces = new ArrayList<>();
+    private ArrayList<RemoteSpace> activePlayerSpaces = playerSpaces;
+    private ArrayList<Player> players = new ArrayList<>();
+    private ArrayList<Player> activePlayers = players;
+    private int pool;
+    private ShuffledDeck deck;
+    private Card[] cardsInPlay;
+    private int highestBet;
 
     public Poker(String uri) throws IOException {
         this.space = new RemoteSpace(uri + "/gameState?conn");
         this.uri = uri;
+        this.pool = 0;
     }
 
-    public void initializeDeck() {
-        Suite[] suites = {Suite.HEARTS, Suite.DIAMONDS, Suite.CLUBS, Suite.SPADES};
-        for (Suite suite : suites) {
-            for (int i = 2; i <= 14; i++) {
-                deck.add(new Card(i, suite));
-            }
-        }
-        Collections.shuffle(deck);
+    public void bet() {
+
+    }
+
+    public boolean isActionValid(Player player, String action) {
+        return true;
+        //TODO: inputs er bare et gæt, måske skal der også være en værdi tilknyttet fx et raise.
     }
 
     public void setBlinds() {
+        //THP: bør alt det her ikke ske på activePlayers?????
+        Player first = players.get(0);
+        RemoteSpace firstSpace = playerSpaces.get(0);
+        first.makeBet(10);
+        pool += 10;
+        players.get(1).makeBet(20);
+        pool += 20;
+        players.remove(0);
+        players.add(players.size(), first);
+        playerSpaces.remove(0);
+        playerSpaces.add(playerSpaces.size(), firstSpace);
+        highestBet = 20;
+    }
 
+    //THP: Me no understand this function
+    public boolean checkRound() {
+        //THP: Bør highest bet ikke opdateres efter hvert bet?
+        activePlayers.removeIf(p -> p.getStatus().equals("Fold"));
+        for (Player p : activePlayers) {
+            if (highestBet < p.getBet()) {
+                highestBet = p.getBet();
+            }
+        }
+
+        for (Player p : activePlayers) {
+            if (highestBet != p.getBet()) {
+                if (!p.getStatus().equals("All in")) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public void dealCards() throws Exception {
+        deck = new ShuffledDeck();
+        for (int i = 0; i < players.size(); i++) {
+            Card[] cards = deck.deal();
+            players.get(i).setHand(cards);
+            playerSpaces.get(i).put("Hand", cards);
+        }
     }
 
     public void startGame() throws Exception {
-        Deck deck = new Deck();
-        this.player1 = new RemoteSpace(uri + "/player1?conn");
-        this.player2 = new RemoteSpace(uri + "/player2?conn");
+        players.add(new Player("Christian", 10000, "/player1"));
+        players.add(new Player("Shannon", 1000000, "/player2"));
+        playerSpaces.add(new RemoteSpace(uri + players.get(0).getUriPart() + "?conn"));
+        playerSpaces.add(new RemoteSpace(uri + players.get(1).getUriPart() + "?conn"));
 
-        Card card1 = deck.drawCard();
-        System.out.println(card1.toString());
-        card1 = deck.drawCard();
-        System.out.println(card1.toString());
-        card1 = deck.drawCard();
-        System.out.println(card1.toString());
-        card1 = deck.drawCard();
-        System.out.println(card1.toString());
+        setBlinds();
+        dealCards();
+        flop();
+
+        space.put("Flop", cardsInPlay);
+
+
+    }
+
+    private void flop() throws Exception {
+        cardsInPlay = new Card[]{deck.drawCard(),deck.drawCard(),deck.drawCard(),null,null};
+    }
+    private void turn() throws Exception {
+        cardsInPlay[3] = deck.drawCard();
+    }
+    private void river() throws Exception {
+        cardsInPlay[4] = deck.drawCard();
     }
     @Override
     public void run() {

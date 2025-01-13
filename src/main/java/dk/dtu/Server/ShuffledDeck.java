@@ -1,13 +1,16 @@
 package dk.dtu.Server;
 
+import dk.dtu.Common.Card;
+import dk.dtu.Common.Suite;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class Deck {
+public class ShuffledDeck {
 
     private ArrayList<Card> cards = new ArrayList<>();
 
-    public Deck() {
+    public ShuffledDeck() {
         Suite[] suites = {Suite.HEARTS, Suite.DIAMONDS, Suite.CLUBS, Suite.SPADES};
         for (Suite suite : suites) {
             for (int i = 2; i <= 14; i++) {
@@ -25,6 +28,11 @@ public class Deck {
         cards.remove(0);
         return top;
     }
+
+    public Card[] deal() throws Exception {
+        return new Card[]{drawCard(), drawCard()};
+    }
+
 
     public int getSize() {
         return cards.size();
