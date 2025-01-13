@@ -1,6 +1,9 @@
 package dk.dtu.Server;
 
 import dk.dtu.Common.Card;
+import org.jspace.RemoteSpace;
+
+import java.io.IOException;
 
 public class Player {
     public static int incrementer = 0;
@@ -11,6 +14,7 @@ public class Player {
     private String status;
     private String uriPart;
     private int bet;
+    private RemoteSpace space;
 
     public Player(String name, int cash, String uriPart) {
         setCash(cash);
@@ -18,6 +22,13 @@ public class Player {
         setName(name);
         setStatus("playing");
         this.uriPart = uriPart;
+    }
+
+    public void setSpace(String uri) throws IOException {
+        this.space = new RemoteSpace(uri);
+    }
+    public RemoteSpace getSpace() {
+        return this.space;
     }
 
     public void setCash(int dollars) {

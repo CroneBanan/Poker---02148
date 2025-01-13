@@ -20,6 +20,8 @@ public class Server {
         repository.add("player2", player2);
         SequentialSpace gameState = new SequentialSpace();
         repository.add("gameState", gameState);
+        SequentialSpace turnSpace = new SequentialSpace();
+        repository.add("turn", turnSpace);
 
         repository.addGate(generalUri);
         Poker game = new Poker("tcp://" + ip + ":" + port);

@@ -2,6 +2,7 @@ package dk.dtu.Server;
 
 import dk.dtu.Common.Card;
 import org.jspace.ActualField;
+import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 import org.jspace.SpaceRepository;
 
@@ -11,8 +12,7 @@ import java.util.ArrayList;
 public class Poker implements Runnable {
     private String uri;
     private RemoteSpace space;
-    private ArrayList<RemoteSpace> playerSpaces = new ArrayList<>();
-    private ArrayList<RemoteSpace> activePlayerSpaces = playerSpaces;
+    private RemoteSpace turn;
     private ArrayList<Player> players = new ArrayList<>();
     private ArrayList<Player> activePlayers = players;
     private int pool;
@@ -22,12 +22,35 @@ public class Poker implements Runnable {
 
     public Poker(String uri) throws IOException {
         this.space = new RemoteSpace(uri + "/gameState?conn");
+        this.turn = new RemoteSpace(uri + "/turn?conn");
         this.uri = uri;
         this.pool = 0;
     }
 
-    public void bet() {
-
+    public void playerAction(Player p, String actionType, int val) throws InterruptedException {
+        switch (actionType) {
+            case "Fold":
+                p.setStatus("Fold");
+                this.activePlayers.remove(0);
+                break;
+            case "Raise":
+                p.makeBet(val);
+                p.setStatus("Raise");
+                if(highestBet < val) {
+                    highestBet = val;
+                }
+                break;
+            case "All In":
+                p.makeBet(p.getCash());
+                p.setStatus("All In");
+                if(highestBet < val) {
+                    highestBet = val;
+                }
+                break;
+            case "Check":
+                p.setStatus("Check");
+                break;
+        }
     }
 
     public boolean isActionValid(Player player, String action) {
@@ -36,30 +59,17 @@ public class Poker implements Runnable {
     }
 
     public void setBlinds() {
-        //THP: bør alt det her ikke ske på activePlayers?????
         Player first = players.get(0);
-        RemoteSpace firstSpace = playerSpaces.get(0);
         first.makeBet(10);
         pool += 10;
         players.get(1).makeBet(20);
         pool += 20;
         players.remove(0);
         players.add(players.size(), first);
-        playerSpaces.remove(0);
-        playerSpaces.add(playerSpaces.size(), firstSpace);
         highestBet = 20;
     }
 
-    //THP: Me no understand this function
     public boolean checkRound() {
-        //THP: Bør highest bet ikke opdateres efter hvert bet?
-        activePlayers.removeIf(p -> p.getStatus().equals("Fold"));
-        for (Player p : activePlayers) {
-            if (highestBet < p.getBet()) {
-                highestBet = p.getBet();
-            }
-        }
-
         for (Player p : activePlayers) {
             if (highestBet != p.getBet()) {
                 if (!p.getStatus().equals("All in")) {
@@ -71,24 +81,22 @@ public class Poker implements Runnable {
     }
 
     public void dealCards() throws Exception {
-        deck = new ShuffledDeck();
-        for (int i = 0; i < players.size(); i++) {
-            Card[] cards = deck.deal();
-            players.get(i).setHand(cards);
-            playerSpaces.get(i).put("Hand", cards);
+        for (Player player : players) {
+            player.setHand(deck.deal());
         }
     }
 
     public void startGame() throws Exception {
+        deck = new ShuffledDeck();
         players.add(new Player("Christian", 10000, "/player1"));
         players.add(new Player("Shannon", 1000000, "/player2"));
-        playerSpaces.add(new RemoteSpace(uri + players.get(0).getUriPart() + "?conn"));
-        playerSpaces.add(new RemoteSpace(uri + players.get(1).getUriPart() + "?conn"));
+        players.get(0).setSpace(uri + players.get(0).getUriPart() + "?conn");
+        players.get(1).setSpace(uri + players.get(1).getUriPart() + "?conn");
 
         setBlinds();
         dealCards();
-        flop();
 
+        flop();
         space.put("Flop", cardsInPlay);
 
 
