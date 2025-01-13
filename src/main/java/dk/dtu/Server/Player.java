@@ -1,6 +1,5 @@
 package dk.dtu.Server;
 
-import org.jspace.SequentialSpace;
 import dk.dtu.Common.Card;
 import org.jspace.RemoteSpace;
 
@@ -14,29 +13,14 @@ public class Player {
     private Card[] hand;
     private String status;
     private String uriPart;
-    private Space channel;
     private int bet;
-    public Player(String name, int cash) {
-    
+    private RemoteSpace space;
 
     public Player(String name, int cash, String uriPart) {
         setCash(cash);
         setId();
         setName(name);
         setStatus("playing");
-
-        setUriPart();
-        this.channel = new SequentialSpace();
-    }
-
-    public Player(String name,String status) {
-        setName(name);
-        setId();
-        setStatus(status);
-        setUriPart();
-        this.channel = new SequentialSpace();
-    }
-
         this.uriPart = uriPart;
     }
 
@@ -116,16 +100,6 @@ public class Player {
         incrementer++;
     }
 
-    private void setUriPart() {
-        this.uriPart = "/player" + this.id;
-    }
-
-    public String getUriPart() {
-        return uriPart;
-    }
-
-    public SequentialSpace getChannel() {
-        return channel;
     public void isAllIn() {
         if (bet == cashInCents) {
             setStatus("All in");
