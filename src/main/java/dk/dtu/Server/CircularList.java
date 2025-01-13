@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class CircularList {
-    private List<Object> objects;
+public class CircularList<T> {
+    private List<T> objects;
     private int firstObjectIndex;
 
     public CircularList() {
@@ -17,14 +17,25 @@ public class CircularList {
         return  (firstObjectIndex + index) % objects.size();
     }
 
-    public Object getNext() {
-        Object next = objects.get(firstObjectIndex);
+    public T getNext() {
+        T next = objects.get(firstObjectIndex);
         firstObjectIndex = getObjectsIndex(1);
         return next;
     }
 
-    public void setObjects(List<Object> objects) {
+    public T get(int index) {
+        return objects.get(getObjectsIndex(index));
+    }
+
+    public void setObjects(List<T> objects) {
         this.objects = objects;
     }
 
+    public List<T> toList() {
+        List<T> list = new ArrayList<>();
+        for (int i = 0; i < objects.size(); i++) {
+            list.add(i, get(i));
+        }
+        return list;
+    }
 }

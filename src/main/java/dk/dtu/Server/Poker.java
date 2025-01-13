@@ -14,12 +14,14 @@ public class Poker implements Runnable {
     private String uri;
     private RemoteSpace space;
     private RemoteSpace turn;
-    private ArrayList<Player> players = new ArrayList<>();
+    private CircularList<Player> players = new CircularList();
+    private CircularList<Player> blindOrder = new CircularList();
     //private ArrayList<Player> activePlayers = players;
     private int pool;
     private ShuffledDeck deck;
     private Card[] cardsInPlay;
     private int highestBet;
+    private int turnsSinceHighestBetChange = 0;
 
     public Poker(String uri) throws IOException {
         this.space = new RemoteSpace(uri + "/gameState?conn");
@@ -27,14 +29,38 @@ public class Poker implements Runnable {
         this.uri = uri;
         this.pool = 0;
     }
-    public void doPlayerTurn() {
-        //isPlayerPlaying
+    public void doPlayerTurn() throws InterruptedException {
+        Player p = players.getNext();
         //getTurnToken
-        //getAction
-        //if(isValidAction)
-        // then: do player action() and put 'Valid Action'
-        //else put 'Invalid action'
+        turn.get(new ActualField(p.getId()));
+        //getAction if playing
+        if (!p.getStatus().equals("Fold")) {
+            Object[] action = p.getSpace().get(
+                    new ActualField("Action"),
+                    new FormalField(String.class),
+                    new FormalField((Integer.class))
+            );
+            String actionType = (String) action[1];
+            int val = (int) action[2];
+            //if(isValidAction)
+            if (isActionValid(p, actionType, val)) {
+                // then: do player action() and put 'Valid Action'
+                playerAction(p, actionType, val);
+                p.getSpace().put("Action Feedback", "Valid Action");
+            } else {
+                //else put 'Invalid action'
+                p.getSpace().put("Action Feedback", "Invalid Action");
+            }
+        }
         //putTurnToken
+        turn.put(players.get(0).getId());
+
+        signalGameStateChange();
+    }
+
+    public void signalGameStateChange() {
+        //SKAL IMPLEMENTERES
+        return;
     }
 
     public void playerAction(Player p, String actionType, int val) throws InterruptedException {
@@ -46,14 +72,14 @@ public class Poker implements Runnable {
                 p.makeBet(val);
                 p.setStatus("Raise");
                 if(highestBet < val) {
-                    highestBet = val;
+                    setHighestBet(val);
                 }
                 break;
             case "All In":
                 p.makeBet(p.getCash());
                 p.setStatus("All In");
                 if(highestBet < val) {
-                    highestBet = val;
+                    setHighestBet(val);
                 }
                 break;
             case "Check":
@@ -76,18 +102,32 @@ public class Poker implements Runnable {
                 return (p.enoughCash(highestBet));
         }
         return true;
+    }
 
+    public void bettingRound() throws InterruptedException {
+        Player player = blindOrder.get(1);
+        while (players.get(0).getId() != (player.getId())) {
+            players.getNext();
+        }
+
+        do {
+            //take turn
+            doPlayerTurn();
+            turnsSinceHighestBetChange += 1;
+        } while (turnsSinceHighestBetChange == players.toList().size());
+    }
+
+    public void setHighestBet(int highestBet) {
+        this.highestBet = highestBet;
+        turnsSinceHighestBetChange = 0;
     }
 
     public void setBlinds() {
-        Player first = players.get(0);
-        first.makeBet(10);
+        blindOrder.getNext().makeBet(10);
         pool += 10;
-        players.get(1).makeBet(20);
+        blindOrder.get(0).makeBet(20);
         pool += 20;
-        players.remove(0);
-        players.add(players.size(), first);
-        highestBet = 20;
+        setHighestBet(20);
     }
 
     public boolean checkRound() {
@@ -102,21 +142,24 @@ public class Poker implements Runnable {
     }
 
     public List<Player> activePlayers() {
-        return players.stream().filter(p -> !p.getStatus().equals("Fold")).toList();
+        return players.toList().stream().filter(p -> !p.getStatus().equals("Fold")).toList();
     }
 
     public void dealCards() throws Exception {
-        for (Player player : players) {
+        for (Player player : players.toList()) {
             player.setHand(deck.deal());
         }
     }
 
     public void startGame() throws Exception {
         deck = new ShuffledDeck();
-        players.add(new Player("Christian", 10000, "/player1"));
-        players.add(new Player("Shannon", 1000000, "/player2"));
-        players.get(0).setSpace(uri + players.get(0).getUriPart() + "?conn");
-        players.get(1).setSpace(uri + players.get(1).getUriPart() + "?conn");
+        List<Player> ps = new ArrayList<>();
+        ps.add(new Player("Christian", 10000, "/player1"));
+        ps.add(new Player("Shannon", 1000000, "/player2"));
+        ps.get(0).setSpace(uri + players.get(0).getUriPart() + "?conn");
+        ps.get(1).setSpace(uri + players.get(1).getUriPart() + "?conn");
+        players.setObjects(ps);
+        blindOrder.setObjects(ps);
 
         setBlinds();
         dealCards();
