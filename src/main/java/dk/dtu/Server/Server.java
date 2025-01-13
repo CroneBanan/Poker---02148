@@ -14,11 +14,6 @@ public class Server {
 
     public static void main(String[] args) throws Exception {
         SpaceRepository repository = new SpaceRepository();
-
-        SequentialSpace player1 = new SequentialSpace();
-        repository.add("player1", player1);
-        SequentialSpace player2 = new SequentialSpace();
-        repository.add("player2", player2);
         SequentialSpace gameState = new SequentialSpace();
         repository.add("gameState", gameState);
         SequentialSpace turnSpace = new SequentialSpace();

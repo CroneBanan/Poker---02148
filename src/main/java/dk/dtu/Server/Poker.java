@@ -32,8 +32,11 @@ public class Poker implements Runnable {
         this.uri = uri;
         this.pot = 0;
 
-        players.get(0).setSpace(uri + players.get(0).getUriPart() + "?conn");
-        players.get(1).setSpace(uri + players.get(1).getUriPart() + "?conn");
+        for (int i = 0; i < 2; i++) {
+            Player player = players.get(i);
+            player.setSpace(uri + player.getUriPart() + "?conn");
+            player.setCash(100);
+        }
         players.get(0).getSpace().put("Action","Raise",10);
         for (int i = 0; i < 10; i++) {
             players.get(0).getSpace().put("Action","Check",0);
@@ -191,19 +194,6 @@ public class Poker implements Runnable {
 
     public void startGame() throws Exception {
         deck = new ShuffledDeck();
-        List<Player> ps = new ArrayList<>();
-        ps.add(new Player("Christian", 10000, "/player1"));
-        ps.add(new Player("Shannon", 1000000, "/player2"));
-        ps.get(0).setSpace(uri + ps.get(0).getUriPart() + "?conn");
-        ps.get(1).setSpace(uri + ps.get(1).getUriPart() + "?conn");
-        ps.get(0).getSpace().put("Action","Raise",10);
-
-        for (int i = 0; i < 10; i++) {
-            ps.get(0).getSpace().put("Action","Check",0);
-            ps.get(1).getSpace().put("Action","Check",0);
-        }
-        players.setObjects(ps);
-        blindOrder.setObjects(ps);
 
         setBlinds();
         dealCards();
@@ -217,11 +207,7 @@ public class Poker implements Runnable {
 
         ArrayList<Player> winners = findWinners();
         distributePot(winners);
-
         System.out.println("DONE");
-        space.put("Flop", cardsInPlay);
-
-
     }
 
     private void flop() throws Exception {

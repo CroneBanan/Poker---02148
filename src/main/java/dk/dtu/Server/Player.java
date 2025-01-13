@@ -17,7 +17,7 @@ public class Player {
     private String uriPart;
     private Space channel;
     private int bet;
-    private RemoteSpace space;
+    private Space space;
 
     public Player(String name, int cash, String uriPart) {
         setCash(cash);
@@ -39,9 +39,9 @@ public class Player {
     }
 
     public void setSpace(String uri) throws IOException {
-        this.space = new RemoteSpace(uri);
+        this.space = channel;
     }
-    public RemoteSpace getSpace() {
+    public Space getSpace() {
         return this.space;
     }
 
