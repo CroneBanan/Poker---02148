@@ -33,14 +33,6 @@ public class ShuffledDeck {
         return new Card[]{drawCard(), drawCard()};
     }
 
-    public Card[] flop() throws Exception {
-        return new Card[]{
-                drawCard(),
-                drawCard(),
-                drawCard(),
-                drawCard(),
-                drawCard()};
-    }
 
     public int getSize() {
         return cards.size();

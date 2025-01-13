@@ -79,11 +79,21 @@ public class Poker implements Runnable {
 
         setBlinds();
         dealCards();
-        cardsInPlay = deck.flop();
+        flop();
 
-        space.put("Flop", deck.flop());
+        space.put("Flop", cardsInPlay);
 
 
+    }
+
+    private void flop() throws Exception {
+        cardsInPlay = new Card[]{deck.drawCard(),deck.drawCard(),deck.drawCard(),null,null};
+    }
+    private void turn() throws Exception {
+        cardsInPlay[3] = deck.drawCard();
+    }
+    private void river() throws Exception {
+        cardsInPlay[4] = deck.drawCard();
     }
     @Override
     public void run() {
