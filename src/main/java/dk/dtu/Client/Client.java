@@ -1,11 +1,10 @@
 package dk.dtu.Client;
 
-import dk.dtu.Server.Card;
+import dk.dtu.Common.Card;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.jspace.ActualField;
 
