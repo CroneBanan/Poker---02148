@@ -92,19 +92,14 @@ public class Poker implements Runnable {
         switch (actionType) {
             case "Fold":
                 return true;
-                break;
             case "Raise":
                 return (p.enoughCash(val) && val > highestBet);
-                break;
             case "All In":
                 return true;
-                break;
             case "Check":
                 return (p.getBet() == highestBet);
-                break;
             case "Match":
                 return (p.enoughCash(highestBet));
-                break;
         }
         return true;
     }
