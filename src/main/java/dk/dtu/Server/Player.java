@@ -2,6 +2,8 @@ package dk.dtu.Server;
 
 import dk.dtu.Common.Card;
 import org.jspace.RemoteSpace;
+import org.jspace.SequentialSpace;
+import org.jspace.Space;
 
 import java.io.IOException;
 
@@ -13,6 +15,7 @@ public class Player {
     private Card[] hand;
     private String status;
     private String uriPart;
+    private Space channel;
     private int bet;
     private RemoteSpace space;
 
@@ -22,6 +25,17 @@ public class Player {
         setName(name);
         setStatus("playing");
         this.uriPart = uriPart;
+    }
+    public Player(String name,String status) {
+        setName(name);
+        setId();
+        setStatus(status);
+        setUriPart();
+        this.channel = new SequentialSpace();
+    }
+
+    private void setUriPart() {
+        this.uriPart = "/player" + id;
     }
 
     public void setSpace(String uri) throws IOException {
@@ -108,5 +122,13 @@ public class Player {
 
     public void addCash(int winnings) {
         this.cashInCents += winnings;
+    }
+
+    public Space getChannel() {
+        return channel;
+    }
+
+    public void setChannel(Space channel) {
+        this.channel = channel;
     }
 }
