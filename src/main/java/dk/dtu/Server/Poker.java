@@ -92,14 +92,19 @@ public class Poker implements Runnable {
         switch (actionType) {
             case "Fold":
                 return true;
+                break;
             case "Raise":
                 return (p.enoughCash(val) && val > highestBet);
+                break;
             case "All In":
                 return true;
+                break;
             case "Check":
                 return (p.getBet() == highestBet);
+                break;
             case "Match":
                 return (p.enoughCash(highestBet));
+                break;
         }
         return true;
     }
@@ -130,17 +135,6 @@ public class Poker implements Runnable {
         setHighestBet(20);
     }
 
-    public boolean checkRound() {
-        for (Player p : activePlayers()) {
-            if (highestBet != p.getBet()) {
-                if (!p.getStatus().equals("All in")) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     public List<Player> activePlayers() {
         return players.toList().stream().filter(p -> !p.getStatus().equals("Fold")).toList();
     }
@@ -163,6 +157,7 @@ public class Poker implements Runnable {
 
         setBlinds();
         dealCards();
+
 
         flop();
         space.put("Flop", cardsInPlay);
