@@ -41,6 +41,10 @@ public class PlayerInfo {
         return bet;
     }
 
+    public CardInfo[] getHand() {
+        return hand;
+    }
+
     public String handToString() {
         return "|" + hand[0].toString() + "||" + hand[1].toString() + "|";
     }
