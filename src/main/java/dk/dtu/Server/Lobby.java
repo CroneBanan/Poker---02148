@@ -39,6 +39,7 @@ public class Lobby{
             }
         } while (!ArePlayersReady());
         state.get(new ActualField("Open"));
+        space.put("Status","Closed");
     }
 
     private boolean ArePlayersReady() {
@@ -82,14 +83,17 @@ public class Lobby{
         }
 
         public void handlePlayerChannel() throws Exception {
+            player.getChannel().put("lobbyState","Open");
             while(lobbyState.queryp(new ActualField("Open")) != null){
-                Object[] t = player.getChannel().get(new ActualField("lobby"), new FormalField(String.class));
+                Object[] t = player.getChannel().getp(new ActualField("lobby"), new FormalField(String.class));
+                if (t == null) {
+                    continue;
+                }
                 if(t[1].equals("ready")){
                     System.out.println("ready");
                     player.setStatus("ready");
                     readySpace.put(player.getId(),player.getName());
-                }
-                if(t[1].equals("disconnect")){
+                } else if(t[1].equals("disconnect")){
                     System.out.println("disconnect");
                     player.setStatus("disconnected");
                     readySpace.getp(new ActualField(player.getId()), new ActualField(player.getName()));
@@ -97,6 +101,7 @@ public class Lobby{
                     break;
                 }
             }
+            player.getChannel().get(new ActualField("lobbyState"),new ActualField("Open"));
         }
     }
 

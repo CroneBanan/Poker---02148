@@ -2,25 +2,36 @@ package dk.dtu.Client;
 
 import dk.dtu.Common.Card;
 import dk.dtu.Server.ShuffledDeck;
-import org.jspace.FormalField;
-import org.jspace.RemoteSpace;
+import org.jspace.*;
 
 import java.io.IOException;
 
-import org.jspace.ActualField;
-
 public class Client {
     public static void main(String[] args) throws Exception {
-        RemoteSpace space;
-        RemoteSpace player;
+        Space instructions = new SequentialSpace();
+        Space inputs = new SequentialSpace();
+        new Thread(new UserInput(instructions,inputs)).start();
         String ip = "localhost";
         int port = 7324;
         String uri = "tcp://" + ip + ":" + port;
-        String player1 = "player1";
+        instructions.put("getName","What is your name? \n");
+        String playerName = (String) inputs.get(new ActualField("getName"),new FormalField(String.class))[1];
+        RemoteSpace channel = connect(playerName, uri);
 
-        space = new RemoteSpace(uri + "/gameState?conn");
-        RemoteSpace channel = connect(player1, uri);
-        ready(channel);
+        while (channel.queryp(new ActualField("lobbyState"),new ActualField("Open")) != null) {
+            instructions.put("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
+            String lobbyAction = (String) inputs.get(new ActualField("lobbyAction"),new FormalField(String.class))[1];
+            lobbyAction = lobbyAction.toLowerCase().trim();
+            if (lobbyAction.equals("ready")) {
+                ready(channel);
+            } else if (lobbyAction.equals("disconnect")) {
+                disconnectFromLobby(channel);
+            } else {
+                System.out.println("command not recognized");
+            }
+        }
+
+        //ready(channel);
         //disconnectFromLobby(channel);
         // String test = (String) space.get(new ActualField("hej"))[0];
 
@@ -30,6 +41,8 @@ public class Client {
         //System.out.println(cards[0].toString());
         //System.out.println(cards[1].toString());
     }
+
+
 
     // OBS skal nok bruge en playerInfo klasse som har det her navn.
     public static RemoteSpace connect(String playerName,String uri) throws Exception{
@@ -43,6 +56,7 @@ public class Client {
         System.out.println("Connected to lobby");
         return channel;
     }
+
 
     public static void ready(RemoteSpace channel) {
         try {
