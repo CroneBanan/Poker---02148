@@ -12,7 +12,7 @@ public class Client {
         Space instructions = new SequentialSpace();
         Space inputs = new SequentialSpace();
         new Thread(new UserInput(instructions,inputs)).start();
-        String ip = "10.209.245.198";
+        String ip = "local host";
         int port = 7324;
         String uri = "tcp://" + ip + ":" + port;
         instructions.put("getName","What is your name? \n");

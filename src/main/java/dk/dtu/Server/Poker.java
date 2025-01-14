@@ -238,22 +238,12 @@ public class Poker implements Runnable {
 
         public void sendGameState() throws InterruptedException {
             for (Player p : poker.getPlayersAsList()) {
+                System.out.println(p.getName());
                 p.getSpace().put("State", "Private player info",
                         p.getHand()[0].getValue(),
                         p.getHand()[0].getSuite().name(),
                         p.getHand()[1].getValue(),
                         p.getHand()[1].getSuite().name());
-                for (Player ps : poker.getPlayersAsList()) {
-                    if (!p.equals(ps)) {
-                        ps.getSpace().put("State", "Public player info",
-                                p.getId(),
-                                p.getName(),
-                                p.getCash(),
-                                p.getBet(),
-                                p.getStatus());
-                    }
-                }
-
             }
         }
 
