@@ -88,4 +88,33 @@ public class Client {
         }
 
     }
+
+    public static void getPlayerAction(RemoteSpace channel, Space instructions, Space inputs) throws InterruptedException {
+        do {
+            instructions.put("Action","What do you want to do? Raise, Check, Fold? \n");
+            String playerAction = (String) inputs.get(new ActualField("Action"),new FormalField(String.class))[1];
+            if (playerAction.equals("Raise")) {
+                instructions.put("Raise", "How much do you wanna bet?");
+                String Sbet = (String) inputs.get(new ActualField("Raise"), new FormalField(String.class))[1];
+                int bet = Integer.parseInt(Sbet);
+                action(channel, playerAction, bet);
+            } else {
+                action(channel, playerAction, 0);
+            }
+        } while(validateAction());
+    }
+
+    private static boolean validateAction() {
+        //TODO: Action skal valideres, selvom det ikke er spillerens tur.
+        return true;
+
+    }
+
+    public static void action(RemoteSpace channel, String playerAction, int bet) {
+            try {
+                channel.put("Action", playerAction, bet);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+    }
 }
