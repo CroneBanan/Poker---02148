@@ -26,7 +26,6 @@ public class ShuffledDeck {
         }
         Card top = cards.get(0);
         cards.remove(0);
-        System.out.println(top);
         return top;
     }
 

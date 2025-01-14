@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 public class PokerInfo {
     private ArrayList<PlayerInfo> players;
+    private PlayerInfo currentPlayer;
     private ArrayList<PlayerInfo> blindOrder;
     private int pot;
     private CardInfo[] cardsInPlay;
@@ -38,20 +39,14 @@ public class PokerInfo {
         return pot;
     }
 
-    public CardInfo[] getCardsInPlay() {
-        return cardsInPlay;
+    public CardInfo[] getCardsInPlay() {return cardsInPlay;
     }
 
     public int getHighestBet() {
         return highestBet;
     }
 
-    public String blindsToString() {
-        return "Big Blind: " + blindOrder.get(0).getName() + " (" + blindOrder.get(0).getId() + ")\n"
-                + "Small Blind: " + blindOrder.get(0).getName() + " (" + blindOrder.get(0).getId() + ")";
-    }
-
     public String getCurrentPlayer() {
-        return "AD";
+        return currentPlayer.getName() + " (" + currentPlayer.getId() + ")";
     }
 }

@@ -44,8 +44,4 @@ public class PlayerInfo {
     public CardInfo[] getHand() {
         return hand;
     }
-
-    public String handToString() {
-        return "|" + hand[0].toString() + "||" + hand[1].toString() + "|";
-    }
 }
