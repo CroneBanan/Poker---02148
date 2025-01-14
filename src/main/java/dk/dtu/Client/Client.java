@@ -1,6 +1,7 @@
 package dk.dtu.Client;
 
 import dk.dtu.Common.Card;
+import dk.dtu.Server.ShuffledDeck;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 
