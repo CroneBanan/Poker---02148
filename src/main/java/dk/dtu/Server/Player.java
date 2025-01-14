@@ -131,4 +131,8 @@ public class Player {
     public void setChannel(Space channel) {
         this.channel = channel;
     }
+
+    public boolean equals(Player p) {
+        return this.id == p.getId();
+    }
 }

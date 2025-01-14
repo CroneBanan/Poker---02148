@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class Server {
-    public static String ip = "localhost";
+    public static String ip = "10.209.245.198";
     public static int port = 7324;
     public static String generalUri = "tcp://" + ip + ":" + port + "/?conn";
 

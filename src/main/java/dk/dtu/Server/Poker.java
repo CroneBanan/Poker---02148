@@ -5,17 +5,14 @@ import dk.dtu.Common.ComparisonResult;
 import dk.dtu.Common.HandComparator;
 import dk.dtu.Common.IHandComparator;
 import org.apache.commons.lang3.ArrayUtils;
-import org.jspace.ActualField;
-import org.jspace.FormalField;
-import org.jspace.RemoteSpace;
+import org.jspace.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Poker implements Runnable {
-    private String uri;
-    private RemoteSpace space;
+    private Space changeSignal;
     private RemoteSpace turn;
     private CircularList<Player> players = new CircularList();
     private CircularList<Player> blindOrder = new CircularList();
@@ -27,9 +24,8 @@ public class Poker implements Runnable {
     private int turnsSinceHighestBetChange = 0;
 
     public Poker(String uri, List<Player> players) throws Exception {
-        this.space = new RemoteSpace(uri + "/gameState?conn");
+        this.changeSignal = new SequentialSpace();
         this.turn = new RemoteSpace(uri + "/turn?conn");
-        this.uri = uri;
         this.pot = 0;
 
         for (int i = 0; i < 2; i++) {
@@ -70,13 +66,7 @@ public class Poker implements Runnable {
         }
         //putTurnToken
         turn.put(players.get(0).getId());
-
         signalGameStateChange();
-    }
-
-    public void signalGameStateChange() {
-        //TODO: SKAL IMPLEMENTERES
-        return;
     }
 
     public void playerAction(Player p, String actionType, int val) throws InterruptedException {
@@ -123,6 +113,7 @@ public class Poker implements Runnable {
     }
 
     public void bettingRound() throws InterruptedException {
+        signalGameStateChange();
         Player player = blindOrder.get(1);
         while (players.get(0).getId() != (player.getId())) {
             players.getNext();
@@ -134,7 +125,6 @@ public class Poker implements Runnable {
             turnsSinceHighestBetChange += 1;
         } while (turnsSinceHighestBetChange != players.toList().size());
         setHighestBet(0);
-
 
         //clear bets
         for (Player p : players.toList()) {
@@ -163,6 +153,10 @@ public class Poker implements Runnable {
         for (Player player : players.toList()) {
             player.setHand(deck.deal());
         }
+    }
+
+    public List<Player> getPlayersAsList() {
+        return players.toList();
     }
 
     public ArrayList<Player> findWinners() {
@@ -194,6 +188,7 @@ public class Poker implements Runnable {
 
     public void startGame() throws Exception {
         deck = new ShuffledDeck();
+        new Thread(new StateSender(this, changeSignal)).start();
 
         setBlinds();
         dealCards();
@@ -207,6 +202,7 @@ public class Poker implements Runnable {
 
         ArrayList<Player> winners = findWinners();
         distributePot(winners);
+        signalGameStateChange();
         System.out.println("DONE");
     }
 
@@ -225,6 +221,53 @@ public class Poker implements Runnable {
             startGame();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+    public void signalGameStateChange() throws InterruptedException {
+        changeSignal.put("Update");
+    }
+
+    private class StateSender implements Runnable {
+        private Poker poker;
+        private Space signalChange;
+
+        public StateSender(Poker poker, Space signalChange) {
+            this.poker = poker;
+            this.signalChange = signalChange;
+        }
+
+        public void sendGameState() throws InterruptedException {
+            for (Player p : poker.getPlayersAsList()) {
+                p.getSpace().put("State", "Private player info",
+                        p.getHand()[0].getValue(),
+                        p.getHand()[0].getSuite().name(),
+                        p.getHand()[1].getValue(),
+                        p.getHand()[1].getSuite().name());
+                for (Player ps : poker.getPlayersAsList()) {
+                    if (!p.equals(ps)) {
+                        ps.getSpace().put("State", "Public player info",
+                                p.getId(),
+                                p.getName(),
+                                p.getCash(),
+                                p.getBet(),
+                                p.getStatus());
+                    }
+                }
+
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    System.out.println("signal change");
+                    signalChange.get(new ActualField("Update"));
+                    sendGameState();
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

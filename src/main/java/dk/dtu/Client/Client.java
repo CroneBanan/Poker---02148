@@ -1,6 +1,7 @@
 package dk.dtu.Client;
 
 import dk.dtu.Common.Card;
+import dk.dtu.Common.Suite;
 import dk.dtu.Server.ShuffledDeck;
 import org.jspace.*;
 
@@ -11,7 +12,7 @@ public class Client {
         Space instructions = new SequentialSpace();
         Space inputs = new SequentialSpace();
         new Thread(new UserInput(instructions,inputs)).start();
-        String ip = "localhost";
+        String ip = "10.209.245.198";
         int port = 7324;
         String uri = "tcp://" + ip + ":" + port;
         instructions.put("getName","What is your name? \n");
@@ -30,6 +31,19 @@ public class Client {
                 System.out.println("command not recognized");
             }
         }
+
+        Object[] t = channel.get(
+                new ActualField("State"),
+                new ActualField("Private player info"),
+                new FormalField(Integer.class),
+                new FormalField(String.class),
+                new FormalField(Integer.class),
+                new FormalField(String.class)
+        );
+        for (int i = 0; i < 6; i++) {
+            System.out.println(t[i]);
+        }
+
 
         //ready(channel);
         //disconnectFromLobby(channel);
