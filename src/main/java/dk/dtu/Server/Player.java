@@ -19,13 +19,6 @@ public class Player {
     private int bet;
     private Space space;
 
-    public Player(String name, int cash, String uriPart) {
-        setCash(cash);
-        setId();
-        setName(name);
-        setStatus("playing");
-        this.uriPart = uriPart;
-    }
     public Player(String name,String status) {
         setName(name);
         setId();
@@ -103,10 +96,6 @@ public class Player {
 
     public void setBet(int bet) {
         this.bet = bet;
-    }
-
-    public void fold() {
-        setStatus("Fold");
     }
 
     private void setId() {
