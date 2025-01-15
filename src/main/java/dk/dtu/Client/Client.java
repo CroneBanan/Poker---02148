@@ -12,25 +12,29 @@ public class Client {
         Space instructions = new SequentialSpace();
         Space inputs = new SequentialSpace();
         new Thread(new UserInput(instructions,inputs)).start();
-        String ip = "local host";
+        String ip = "localhost";
         int port = 7324;
         String uri = "tcp://" + ip + ":" + port;
         instructions.put("getName","What is your name? \n");
         String playerName = (String) inputs.get(new ActualField("getName"),new FormalField(String.class))[1];
         RemoteSpace channel = connect(playerName, uri);
 
-        while (channel.queryp(new ActualField("lobbyState"),new ActualField("Open")) != null) {
+        while (true) {
             instructions.put("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
             String lobbyAction = (String) inputs.get(new ActualField("lobbyAction"),new FormalField(String.class))[1];
             lobbyAction = lobbyAction.toLowerCase().trim();
             if (lobbyAction.equals("ready")) {
                 ready(channel);
+                break;
             } else if (lobbyAction.equals("disconnect")) {
                 disconnectFromLobby(channel);
+                break;
             } else {
                 System.out.println("command not recognized");
             }
         }
+
+        channel.query(new ActualField("lobbyState"),new ActualField("Closed"));
 
         Object[] t = channel.get(
                 new ActualField("State"),

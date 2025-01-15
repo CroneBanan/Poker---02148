@@ -155,10 +155,6 @@ public class Poker implements Runnable {
         }
     }
 
-    public List<Player> getPlayersAsList() {
-        return players.toList();
-    }
-
     public ArrayList<Player> findWinners() {
         ArrayList<Player> winners = new ArrayList<>();
         Card[] player1Hand = ArrayUtils.addAll(players.get(0).getHand(), cardsInPlay);
@@ -237,7 +233,7 @@ public class Poker implements Runnable {
         }
 
         public void sendGameState() throws InterruptedException {
-            for (Player p : poker.getPlayersAsList()) {
+            for (Player p : players.toList()) {
                 System.out.println(p.getName());
                 p.getSpace().put("State", "Private player info",
                         p.getHand()[0].getValue(),

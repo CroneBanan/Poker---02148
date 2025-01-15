@@ -102,6 +102,7 @@ public class Lobby{
                 }
             }
             player.getChannel().get(new ActualField("lobbyState"),new ActualField("Open"));
+            player.getChannel().put("lobbyState", "Closed");
         }
     }
 
