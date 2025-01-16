@@ -16,7 +16,7 @@ public class Player {
     private String status;
     private String uriPart;
     private Space channel;
-    private int bet;
+    private int betInCents;
     private Space space;
 
     public Player(String name,String status) {
@@ -38,12 +38,12 @@ public class Player {
         return this.space;
     }
 
-    public void setCash(int dollars) {
-        this.cashInCents = dollars * 100;
+    public void setCashInCents(int cents) {
+        this.cashInCents = cents;
     }
 
-    public int getCash() {
-        return  cashInCents / 100;
+    public int getCashInCents() {
+        return  cashInCents;
     }
 
     public Card[] getHand() {
@@ -81,7 +81,7 @@ public class Player {
     public void makeBet(int bet) {
         if (enoughCash(bet)) {
             this.cashInCents -= bet;
-            this.bet += bet;
+            this.betInCents += bet;
             isAllIn();
         }
     }
@@ -90,12 +90,12 @@ public class Player {
         return cashInCents >= bet;
     }
 
-    public int getBet() {
-        return bet;
+    public int getBetInCents() {
+        return betInCents;
     }
 
-    public void setBet(int bet) {
-        this.bet = bet;
+    public void setBetInCents(int bet) {
+        this.betInCents = bet;
     }
 
     private void setId() {
@@ -104,13 +104,13 @@ public class Player {
     }
 
     public void isAllIn() {
-        if (bet == cashInCents) {
+        if (betInCents == cashInCents) {
             setStatus("All in");
         }
     }
 
-    public void addCash(int winnings) {
-        this.cashInCents += winnings;
+    public void addCashInCents(int winningsInCents) {
+        this.cashInCents += winningsInCents;
     }
 
     public Space getChannel() {
