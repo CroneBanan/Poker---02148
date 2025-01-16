@@ -4,25 +4,21 @@ import dk.dtu.Common.Suite;
 
 public class CardInfo {
     private int value;
-    private Suite suite;
+    private String suite;
 
-    public CardInfo(int value, Suite suite) {
+    public CardInfo(int value, String suite) {
         this.value = value;
         this.suite = suite;
     }
 
     public String suiteAsString() {
-        switch (suite) {
-            case HEARTS:
-                return "♥";
-            case DIAMONDS:
-                return "♦";
-            case CLUBS:
-                return "♣";
-            case SPADES:
-                return "♠";
-        }
-        return "";
+        return switch (suite) {
+            case "HEARTS" -> "♥";
+            case "DIAMONDS" -> "♦";
+            case "CLUBS" -> "♣";
+            case "SPADES" -> "♠";
+            default -> "";
+        };
     }
 
     public String toString() {

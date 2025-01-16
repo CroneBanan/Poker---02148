@@ -8,10 +8,17 @@ public class Display {
     private ArrayList<PlayerInfo> players;
     private CardInfo[] cardsInPlay;
 
-    public void display(PokerInfo gameState) {
+    public Display(PokerInfo gameState) {
         this.gameState = gameState;
         this.players = this.gameState.getPlayers();
         this.cardsInPlay = gameState.getCardsInPlay();
+    }
+
+    public void show() {
+        displayPlayerInfo();
+        displayPot();
+        displayCards();
+        displayPlayerCard();
     }
 
     public void displayPlayerInfo() {

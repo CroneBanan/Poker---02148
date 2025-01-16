@@ -9,25 +9,25 @@ public class DisplayTester {
         ShuffledDeck d = new ShuffledDeck();
 
         ArrayList<PlayerInfo> players = new ArrayList<>();
-        PlayerInfo p1 = new PlayerInfo(1, "Søren", 100000, stackToInfo(d.deal()), 0, "Active");
-        PlayerInfo p2 = new PlayerInfo(2, "Thomas", 100000, stackToInfo(d.deal()), 10, "Active");
-        players.add(p1);
-        players.add(p2);
-        Card[] flop = {d.drawCard(), d.drawCard(), d.drawCard(), null, null};
-        PokerInfo pi = new PokerInfo(players, players, 0, stackToInfo(flop), 10);
-        Display display = new Display();
-        display.display(pi);
+        //PlayerInfo p1 = new PlayerInfo(1, "Søren", 100000, stackToInfo(d.deal()), 0, "Active");
+        //PlayerInfo p2 = new PlayerInfo(2, "Thomas", 100000, stackToInfo(d.deal()), 10, "Active");
+        //players.add(p1);
+        //players.add(p2);
+        //Card[] flop = {d.drawCard(), d.drawCard(), d.drawCard(), null, null};
+        //PokerInfo pi = new PokerInfo(players, players, 0, stackToInfo(flop), 10);
+        //Display display = new Display();
+        //display.display(pi);
 
-        display.displayPlayerInfo();
-        display.displayCards();
-        display.displayPot();
-        display.displayPlayerCard();
+        //display.displayPlayerInfo();
+        //display.displayCards();
+        //display.displayPot();
+        //display.displayPlayerCard();
     }
 
 
     public static CardInfo cardToInfo(Card c) {
         if (c != null) {
-            return new CardInfo(c.getValue(), c.getSuite());
+            return new CardInfo(c.getValue(), c.getSuite().toString());
         }
         else return null;
     }

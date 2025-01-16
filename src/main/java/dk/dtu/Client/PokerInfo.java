@@ -9,18 +9,17 @@ import java.util.ArrayList;
 public class PokerInfo {
     private ArrayList<PlayerInfo> players;
     private PlayerInfo currentPlayer;
-    private ArrayList<PlayerInfo> blindOrder;
     private int pot;
     private CardInfo[] cardsInPlay;
     private int highestBet;
 
     public PokerInfo(ArrayList<PlayerInfo> players,
-                     ArrayList<PlayerInfo> blindOrder,
+                     PlayerInfo currentPlayer,
                      int pot,
                      CardInfo[] cardsInPlay,
                      int highestBet) {
         this.players = players;
-        this.blindOrder = blindOrder;
+        this.currentPlayer = currentPlayer;
         this.pot = pot;
         this.cardsInPlay = cardsInPlay;
         this.highestBet = highestBet;
@@ -29,10 +28,6 @@ public class PokerInfo {
 
     public ArrayList<PlayerInfo> getPlayers() {
         return players;
-    }
-
-    public ArrayList<PlayerInfo> getBlindOrder() {
-        return blindOrder;
     }
 
     public int getPot() {

@@ -11,14 +11,25 @@ public class PlayerInfo {
     private CardInfo[] hand;
     private int bet;
     private String status;
+    private int turnPosition;
 
-    public PlayerInfo(int id, String name, int cashInCents, CardInfo[] hand, int bet, String status) {
+    public PlayerInfo(int id, String name, int cashInCents, CardInfo[] hand, int bet, String status, int turnPosition) {
         this.id = id;
         this.name = name;
         this.cashInCents = cashInCents;
         this.hand = hand;
         this.bet = bet;
         this.status = status;
+        this.turnPosition = turnPosition;
+    }
+
+    public PlayerInfo(int id, String name, int cashInCents, int bet, String status, int turnPosition) {
+        this.id = id;
+        this.name = name;
+        this.cashInCents = cashInCents;
+        this.bet = bet;
+        this.status = status;
+        this.turnPosition = turnPosition;
     }
 
     public int getId() {

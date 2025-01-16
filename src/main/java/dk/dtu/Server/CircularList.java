@@ -38,4 +38,8 @@ public class CircularList<T> {
         }
         return list;
     }
+
+    public int size() {
+        return objects.size();
+    }
 }
