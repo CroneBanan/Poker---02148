@@ -33,6 +33,16 @@ public class UserInput {
 
     public void stop() {
         listener.interrupt();
+        currentWork.getAll(
+            new FormalField(String.class),
+            new FormalField(String.class)
+        );
+        listener = null;
+    }
+
+    public void restart() {
+        stop();
+        start();
     }
 
     /**
@@ -100,7 +110,11 @@ public class UserInput {
 
             //do work
             System.out.println(prompt);
-            String result = console.nextLine();
+            String result = null;
+            while (!console.hasNext()) {
+                Thread.sleep(20);
+            }
+            result = console.nextLine();
 
             //end work and give result
             inputs.put(instructionId, result);
