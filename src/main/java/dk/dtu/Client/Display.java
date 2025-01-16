@@ -34,7 +34,7 @@ public class Display {
     }
 
     public void displayPot() {
-        System.out.println(gameState.getPot());
+        System.out.println("Pot: " + gameState.getPot());
     }
 
     public void displayPlayerCard() {
