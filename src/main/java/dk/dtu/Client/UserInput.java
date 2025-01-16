@@ -1,42 +1,107 @@
 package dk.dtu.Client;
-import org.jspace.FormalField;
-import org.jspace.QueueSpace;
-import org.jspace.Space;
+import org.jspace.*;
 
+import java.util.List;
 import java.util.Scanner;
 
-public class UserInput implements Runnable{
-    private Scanner console;
-    private Space instructions;
-    private Space inputs;
+public class UserInput {
+    private QueueSpace instructions;
+    private SequentialSpace currentWork;
+    private SequentialSpace inputs;
+    private Thread listener;
 
-    public UserInput(Space instructions,Space inputs) {
-        console = new Scanner(System.in);
-        this.instructions = instructions;
-        this.inputs = inputs;
+    public UserInput(QueueSpace instructions,SequentialSpace inputs, SequentialSpace currentWork) {
+        this.instructions = instructions == null ? new QueueSpace() : instructions;
+        this.inputs = inputs == null ? new SequentialSpace() : inputs;;
+        this.currentWork = currentWork == null ? new SequentialSpace() : currentWork;;
+        listener = null;
     }
 
-    public String getInput(String prompt) {
-        System.out.println(prompt);
-        return console.nextLine();
+    public UserInput() {
+        this(null,null,null);
+    }
+
+    public void start() {
+        if (listener == null) {
+            listener = new Thread(new Listener(instructions,inputs,currentWork));
+            listener.start();
+        }
+    }
+
+    public void stop() {
+        listener.interrupt();
+    }
+
+    /**
+     * Adds prompt to queue if id is unique
+     * @param id
+     * @param prompt
+     * @return succes. ie was it added
+     * @throws InterruptedException
+     */
+    public boolean tryQueuePrompt(String id,String prompt) throws InterruptedException {
+        boolean succes = false;
+        if (idDoesNotExist(id)) {
+            instructions.put(id,prompt);
+            succes = true;
+        }
+        return succes;
+    }
+
+    public boolean idDoesNotExist(String id) {
+        return (
+                instructions.queryAll(new ActualField(id), new FormalField(String.class)).isEmpty() &&
+                inputs.queryAll(new ActualField(id), new FormalField(String.class)).isEmpty() &&
+                currentWork.queryAll(new ActualField(id), new FormalField(String.class)).isEmpty()
+        );
+    }
+
+    public void QueuePrompt(String id,String prompt) throws InterruptedException {
+        boolean succes = tryQueuePrompt(id,prompt);
+        if (succes) {
+            throw new IllegalArgumentException("id already exists: " + id);
+        }
+    }
+
+    public String getInput(String id) throws InterruptedException {
+        return (String) inputs.get(new ActualField(id), new FormalField(String.class))[1];
     }
 
 
-    @Override
-    public void run() {
-        try {
-            while (true) {
-                Object[] instruction = instructions.get(
-                        new FormalField(String.class),
-                        new FormalField(String.class)
-                );
-                String instructionId = (String) instruction[0];
-                String prompt = (String) instruction[1];
-                String result = getInput(prompt);
-                inputs.put(instructionId, result);
+
+    private class Listener implements Runnable{
+        private Scanner console;
+        private QueueSpace instructions;
+        private SequentialSpace currentWork;
+        private SequentialSpace inputs;
+        public Listener(QueueSpace instructions,SequentialSpace inputs, SequentialSpace currentWork) {
+            console = new Scanner(System.in);
+            this.instructions = instructions;
+            this.inputs = inputs;
+            this.currentWork = currentWork;
+        }
+
+        private void doNewestInstruction() throws InterruptedException {
+            Object[] instruction = instructions.get(
+                    new FormalField(String.class),
+                    new FormalField(String.class)
+            );
+            String instructionId = (String) instruction[0];
+            String prompt = (String) instruction[1];
+            System.out.println(prompt);
+            String result = console.nextLine();
+            inputs.put(instructionId, result);
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    doNewestInstruction();
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 }

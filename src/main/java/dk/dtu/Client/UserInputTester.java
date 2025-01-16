@@ -11,7 +11,7 @@ public class UserInputTester {
         Space inputs = new SequentialSpace();
         instructions.put("getName","what is your name?");
         instructions.put("LobbyAction","Type Ready to ready og Disc to disconnect");
-        new UserInput(instructions,inputs).run();
+        //new UserInput(instructions,inputs).run();
         System.out.println(1);
         for (Object[] tuple : inputs.queryAll(new FormalField(String.class),new FormalField(String.class))) {
             System.out.println(2);

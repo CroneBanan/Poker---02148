@@ -9,19 +9,18 @@ import java.io.IOException;
 
 public class Client {
     public static void main(String[] args) throws Exception {
-        Space instructions = new SequentialSpace();
-        Space inputs = new SequentialSpace();
-        new Thread(new UserInput(instructions,inputs)).start();
+        UserInput userInput = new UserInput();
+        userInput.start();
         String ip = "localhost";
         int port = 7324;
         String uri = "tcp://" + ip + ":" + port;
-        instructions.put("getName","What is your name? \n");
-        String playerName = (String) inputs.get(new ActualField("getName"),new FormalField(String.class))[1];
+        userInput.tryQueuePrompt("getName","What is your name? \n");
+        String playerName = userInput.getInput("getName");
         RemoteSpace channel = connect(playerName, uri);
 
         while (true) {
-            instructions.put("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
-            String lobbyAction = (String) inputs.get(new ActualField("lobbyAction"),new FormalField(String.class))[1];
+            userInput.tryQueuePrompt("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
+            String lobbyAction = userInput.getInput("lobbyAction");
             lobbyAction = lobbyAction.toLowerCase().trim();
             if (lobbyAction.equals("ready")) {
                 ready(channel);
