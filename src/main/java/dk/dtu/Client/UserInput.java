@@ -59,9 +59,9 @@ public class UserInput {
         );
     }
 
-    public void QueuePrompt(String id,String prompt) throws InterruptedException {
+    public void queuePrompt(String id,String prompt) throws InterruptedException {
         boolean succes = tryQueuePrompt(id,prompt);
-        if (succes) {
+        if (!succes) {
             throw new IllegalArgumentException("id already exists: " + id);
         }
     }

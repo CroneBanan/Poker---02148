@@ -89,7 +89,7 @@ public class Lobby{
                 if (t == null) {
                     continue;
                 }
-                if(t[1].equals("ready")){
+                if(t[1].equals("ready") && !player.getStatus().equals("ready")) {
                     System.out.println("ready");
                     player.setStatus("ready");
                     readySpace.put(player.getId(),player.getName());
