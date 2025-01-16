@@ -37,8 +37,8 @@ public class Client {
                 userInput.tryQueuePrompt("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
             }
         }
-        System.out.println("Game is starting. press enter to continue");
-        userInput.getInput("lobbyAction");
+        userInput.restart();
+
 
         channel.query(new ActualField("lobbyState"),new ActualField("Closed"));
 
