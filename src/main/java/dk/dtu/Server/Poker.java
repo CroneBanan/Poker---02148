@@ -19,7 +19,7 @@ public class Poker implements Runnable {
     //private ArrayList<Player> activePlayers = players;
     private int potInCents;
     private ShuffledDeck deck;
-    private Card[] cardsInPlay;
+    private CardsInPlay cardsInPlay = new CardsInPlay();;
     private int highestBet;
     private int turnsSinceHighestBetChange = 0;
 
@@ -157,8 +157,8 @@ public class Poker implements Runnable {
 
     public ArrayList<Player> findWinners() {
         ArrayList<Player> winners = new ArrayList<>();
-        Card[] player1Hand = ArrayUtils.addAll(players.get(0).getHand(), cardsInPlay);
-        Card[] player2Hand = ArrayUtils.addAll(players.get(1).getHand(), cardsInPlay);
+        Card[] player1Hand = ArrayUtils.addAll(players.get(0).getHand(), cardsInPlay.getCards());
+        Card[] player2Hand = ArrayUtils.addAll(players.get(1).getHand(), cardsInPlay.getCards());
 
         IHandComparator comparator = new HandComparator();
         ComparisonResult result = comparator.compareFinalHands(player1Hand, player2Hand);
@@ -189,11 +189,11 @@ public class Poker implements Runnable {
         setBlinds();
         dealCards();
         bettingRound();
-        flop();
+        cardsInPlay.flop(deck);
         bettingRound();
-        turn();
+        cardsInPlay.turn(deck);
         bettingRound();
-        river();
+        cardsInPlay.river(deck);
         bettingRound();
 
         ArrayList<Player> winners = findWinners();
@@ -202,15 +202,7 @@ public class Poker implements Runnable {
         System.out.println("DONE");
     }
 
-    private void flop() throws Exception {
-        cardsInPlay = new Card[]{deck.drawCard(),deck.drawCard(),deck.drawCard(),null,null};
-    }
-    private void turn() throws Exception {
-        cardsInPlay[3] = deck.drawCard();
-    }
-    private void river() throws Exception {
-        cardsInPlay[4] = deck.drawCard();
-    }
+
     @Override
     public void run() {
         try {
@@ -234,12 +226,47 @@ public class Poker implements Runnable {
 
         public void sendGameState() throws InterruptedException {
             for (Player p : players.toList()) {
-                p.getSpace().put("State", "Private player info",
+                p.getSpace().put("State", "Player",
                         p.getHand()[0].getValue(),
-                        p.getHand()[0].getSuite().name(),
+                        p.getHand()[0].getSuite().toString(),
                         p.getHand()[1].getValue(),
-                        p.getHand()[1].getSuite().name());
+                        p.getHand()[1].getSuite().toString(),
+                        p.getId(),
+                        p.getName(),
+                        p.getCashInCents(),
+                        p.getBetInCents(),
+                        p.getStatus(),
+                        getTurnNumber(p)
+                );
+                for (Player ps : players.toList()) {
+                    if (!ps.equals(p)) {
+                        p.getSpace().put("State", "Opponents",
+                                ps.getId(),
+                                ps.getName(),
+                                ps.getCashInCents(),
+                                ps.getBetInCents(),
+                                ps.getStatus(),
+                                getTurnNumber(ps)
+                        );
+                    }
+                }
+                p.getSpace().put("State", "Game state",
+                        cardsInPlay.get(0).getValue(), cardsInPlay.get(0).getSuite().toString(),
+                        cardsInPlay.get(1).getValue(), cardsInPlay.get(1).getSuite().toString(),
+                        cardsInPlay.get(2).getValue(), cardsInPlay.get(2).getSuite().toString(),
+                        cardsInPlay.get(3).getValue(), cardsInPlay.get(3).getSuite().toString(),
+                        cardsInPlay.get(4).getValue(), cardsInPlay.get(4).getSuite().toString(),
+                        potInCents, highestBet);
             }
+        }
+
+        public int getTurnNumber(Player p) {
+            for (int i = 0; i < blindOrder.size(); i++) {
+                if (p.equals(blindOrder.get(i))) {
+                    return i + 1;
+                }
+            }
+            return blindOrder.size();
         }
 
         @Override
