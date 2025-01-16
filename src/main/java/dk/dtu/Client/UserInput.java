@@ -27,6 +27,10 @@ public class UserInput {
         }
     }
 
+    public boolean isInputReady(String id) {
+        return !inputs.queryAll(new ActualField(id), new FormalField(String.class)).isEmpty();
+    }
+
     public void stop() {
         listener.interrupt();
     }

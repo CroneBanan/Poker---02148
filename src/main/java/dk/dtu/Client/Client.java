@@ -21,18 +21,23 @@ public class Client {
         String playerName = userInput.getInput("getName");
         RemoteSpace channel = connect(playerName, uri);
 
-        while (true) {
+        while (channel.queryp(new ActualField("lobbyState"),new ActualField("Closed")) == null) {
             userInput.tryQueuePrompt("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
-            String lobbyAction = userInput.getInput("lobbyAction");
-            lobbyAction = lobbyAction.toLowerCase().trim();
-            if (lobbyAction.equals("ready")) {
-                ready(channel);
-                break;
-            } else if (lobbyAction.equals("disconnect")) {
-                disconnectFromLobby(channel);
-                break;
-            } else {
-                System.out.println("command not recognized");
+
+            if(userInput.isInputReady("lobbyAction")) {
+                String lobbyAction = userInput.getInput("lobbyAction");
+
+                lobbyAction = lobbyAction.toLowerCase().trim();
+                if (lobbyAction.equals("ready")) {
+                    ready(channel);
+
+                    //break;
+                } else if (lobbyAction.equals("disconnect")) {
+                    disconnectFromLobby(channel);
+                    break;
+                } else {
+                    System.out.println("command not recognized");
+                }
             }
         }
 
