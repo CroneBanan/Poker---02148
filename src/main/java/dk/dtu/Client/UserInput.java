@@ -1,7 +1,6 @@
 package dk.dtu.Client;
 import org.jspace.*;
 
-import java.util.List;
 import java.util.Scanner;
 
 public class UserInput {
@@ -81,23 +80,34 @@ public class UserInput {
             this.currentWork = currentWork;
         }
 
-        private void doNewestInstruction() throws InterruptedException {
-            Object[] instruction = instructions.get(
+        private Object[] getAnInstruction(Space space) throws InterruptedException {
+            return space.get(
                     new FormalField(String.class),
                     new FormalField(String.class)
             );
+        }
+
+        private void doAnInstruction() throws InterruptedException {
+            //get instruction
+            Object[] instruction = getAnInstruction(instructions);
             String instructionId = (String) instruction[0];
             String prompt = (String) instruction[1];
+            currentWork.put(instructionId,prompt);
+
+            //do work
             System.out.println(prompt);
             String result = console.nextLine();
+
+            //end work and give result
             inputs.put(instructionId, result);
+            getAnInstruction(currentWork);
         }
 
         @Override
         public void run() {
             try {
                 while (true) {
-                    doNewestInstruction();
+                    doAnInstruction();
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
