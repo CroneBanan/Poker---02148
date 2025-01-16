@@ -16,13 +16,8 @@ public class Poker implements Runnable {
     private RemoteSpace turn;
     private CircularList<Player> players = new CircularList();
     private CircularList<Player> blindOrder = new CircularList();
-
-    public int getPot() {
-        return pot;
-    }
-
     //private ArrayList<Player> activePlayers = players;
-    private int pot;
+    private int potInCents;
     private ShuffledDeck deck;
     private CardsInPlay cardsInPlay = new CardsInPlay();;
     private int highestBet;
@@ -31,14 +26,14 @@ public class Poker implements Runnable {
     public Poker(String uri, List<Player> players) throws Exception {
         this.changeSignal = new SequentialSpace();
         this.turn = new RemoteSpace(uri + "/turn?conn");
-        this.pot = 0;
+        this.potInCents = 0;
 
         for (int i = 0; i < 2; i++) {
             Player player = players.get(i);
             player.setSpace(uri + player.getUriPart() + "?conn");
-            player.setCash(100);
+            player.setCashInCents(10000);
         }
-        players.get(0).getSpace().put("Action","Raise",10);
+        players.get(0).getSpace().put("Action","Raise",1000);
         for (int i = 0; i < 10; i++) {
             players.get(0).getSpace().put("Action","Check",0);
             players.get(1).getSpace().put("Action","Check",0);
@@ -81,15 +76,15 @@ public class Poker implements Runnable {
                 break;
             case "Raise":
                 p.makeBet(val);
-                pot += val;
+                potInCents += val;
                 p.setStatus("Raise");
                 if(highestBet < val) {
                     setHighestBet(val);
                 }
                 break;
             case "All In":
-                pot += p.getCash();
-                p.makeBet(p.getCash());
+                potInCents += p.getCashInCents();
+                p.makeBet(p.getCashInCents());
                 p.setStatus("All In");
                 if(highestBet < val) {
                     setHighestBet(val);
@@ -106,11 +101,11 @@ public class Poker implements Runnable {
             case "Fold":
                 return true;
             case "Raise":
-                return (p.enoughCash(val) && (val + p.getBet()) >= highestBet);
+                return (p.enoughCash(val) && (val + p.getBetInCents()) >= highestBet);
             case "All In":
                 return true;
             case "Check":
-                return (p.getBet() == highestBet);
+                return (p.getBetInCents() == highestBet);
             case "Match":
                 return (p.enoughCash(highestBet));
         }
@@ -133,7 +128,7 @@ public class Poker implements Runnable {
 
         //clear bets
         for (Player p : players.toList()) {
-            p.setBet(0);
+            p.setBetInCents(0);
         }
     }
 
@@ -143,11 +138,11 @@ public class Poker implements Runnable {
     }
 
     public void setBlinds() {
-        blindOrder.getNext().makeBet(10);
-        pot += 10;
-        blindOrder.get(0).makeBet(20);
-        pot += 20;
-        setHighestBet(20);
+        blindOrder.getNext().makeBet(1000);
+        potInCents += 1000;
+        blindOrder.get(0).makeBet(2000);
+        potInCents += 2000;
+        setHighestBet(2000);
     }
 
     public List<Player> activePlayers() {
@@ -180,11 +175,11 @@ public class Poker implements Runnable {
 
     public void distributePot(ArrayList<Player> winners) {
         for (Player p : winners) {
-            p.addCash(pot / winners.size());
+            p.addCashInCents(potInCents / winners.size());
             System.out.println(p.getName() + " Gets:");
-            System.out.println(pot / winners.size());
+            System.out.println(potInCents / winners.size());
         }
-        pot = 0;
+        potInCents = 0;
     }
 
     public void startGame() throws Exception {
@@ -207,13 +202,6 @@ public class Poker implements Runnable {
         System.out.println("DONE");
     }
 
-    public List<Player> getPlayers() {
-        return players.toList();
-    }
-
-    public List<Player> getBlindOrder() {
-        return blindOrder.toList();
-    }
 
     @Override
     public void run() {
@@ -237,9 +225,8 @@ public class Poker implements Runnable {
         }
 
         public void sendGameState() throws InterruptedException {
-            for (Player p : poker.getPlayers()) {
-                Space space = p.getSpace();
-                space.put("State", "Player",
+            for (Player p : players.toList()) {
+                p.getSpace().put("State", "Private player info",
                         p.getHand()[0].getValue(),
                         p.getHand()[0].getSuite().toString(),
                         p.getHand()[1].getValue(),
@@ -286,7 +273,6 @@ public class Poker implements Runnable {
         public void run() {
             try {
                 while (true) {
-                    System.out.println("signal change");
                     signalChange.get(new ActualField("Update"));
                     sendGameState();
                 }

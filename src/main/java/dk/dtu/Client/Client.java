@@ -20,21 +20,25 @@ public class Client {
         userInput.tryQueuePrompt("getName","What is your name? \n");
         String playerName = userInput.getInput("getName");
         RemoteSpace channel = connect(playerName, uri);
+        userInput.queuePrompt("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
+        while (channel.queryp(new ActualField("lobbyState"),new ActualField("Closed")) == null) {
+            if(userInput.isInputReady("lobbyAction")) {
+                String lobbyAction = userInput.getInput("lobbyAction");
 
-        while (true) {
-            userInput.tryQueuePrompt("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
-            String lobbyAction = userInput.getInput("lobbyAction");
-            lobbyAction = lobbyAction.toLowerCase().trim();
-            if (lobbyAction.equals("ready")) {
-                ready(channel);
-                break;
-            } else if (lobbyAction.equals("disconnect")) {
-                disconnectFromLobby(channel);
-                break;
-            } else {
-                System.out.println("command not recognized");
+                lobbyAction = lobbyAction.toLowerCase().trim();
+                if (lobbyAction.equals("ready")) {
+                    ready(channel);
+                } else if (lobbyAction.equals("disconnect")) {
+                    disconnectFromLobby(channel);
+                    break;
+                } else {
+                    System.out.println("command not recognized");
+                }
+                userInput.tryQueuePrompt("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
             }
         }
+        userInput.restart();
+
 
         channel.query(new ActualField("lobbyState"),new ActualField("Closed"));
 
