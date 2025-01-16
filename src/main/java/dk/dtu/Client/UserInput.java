@@ -112,7 +112,7 @@ public class UserInput {
             System.out.println(prompt);
             String result = null;
             while (!console.hasNext()) {
-                Thread.sleep(20);
+                Thread.sleep(200);
             }
             result = console.nextLine();
 

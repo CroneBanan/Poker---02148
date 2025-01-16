@@ -226,25 +226,25 @@ public class Poker implements Runnable {
 
         public void sendGameState() throws InterruptedException {
             for (Player p : players.toList()) {
-                p.getSpace().put("State", "Private player info",
+                p.getSpace().put("State", "Player",
                         p.getHand()[0].getValue(),
                         p.getHand()[0].getSuite().toString(),
                         p.getHand()[1].getValue(),
                         p.getHand()[1].getSuite().toString(),
                         p.getId(),
                         p.getName(),
-                        p.getCash(),
-                        p.getBet(),
+                        p.getCashInCents(),
+                        p.getBetInCents(),
                         p.getStatus(),
                         getTurnNumber(p)
                 );
-                for (Player ps : poker.getPlayers()) {
+                for (Player ps : players.toList()) {
                     if (!ps.equals(p)) {
-                        space.put("State", "Opponents",
+                        p.getSpace().put("State", "Opponents",
                                 ps.getId(),
                                 ps.getName(),
-                                ps.getCash(),
-                                ps.getBet(),
+                                ps.getCashInCents(),
+                                ps.getBetInCents(),
                                 ps.getStatus(),
                                 getTurnNumber(ps)
                         );
@@ -256,17 +256,17 @@ public class Poker implements Runnable {
                         cardsInPlay.get(2).getValue(), cardsInPlay.get(2).getSuite().toString(),
                         cardsInPlay.get(3).getValue(), cardsInPlay.get(3).getSuite().toString(),
                         cardsInPlay.get(4).getValue(), cardsInPlay.get(4).getSuite().toString(),
-                        poker.getPot(), highestBet);
+                        potInCents, highestBet);
             }
         }
 
         public int getTurnNumber(Player p) {
-            for (int i = 0; i < poker.getBlindOrder().size(); i++) {
-                if (p.equals(poker.getBlindOrder().get(i))) {
+            for (int i = 0; i < blindOrder.size(); i++) {
+                if (p.equals(blindOrder.get(i))) {
                     return i + 1;
                 }
             }
-            return poker.getBlindOrder().size();
+            return blindOrder.size();
         }
 
         @Override
