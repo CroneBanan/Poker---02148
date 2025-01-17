@@ -257,6 +257,7 @@ public class Poker implements Runnable {
                         cardsInPlay.get(3).getValue(), cardsInPlay.get(3).getSuite().toString(),
                         cardsInPlay.get(4).getValue(), cardsInPlay.get(4).getSuite().toString(),
                         potInCents, highestBet);
+                p.getSpace().put("Update");
             }
         }
 

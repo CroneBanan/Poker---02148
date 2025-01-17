@@ -39,7 +39,7 @@ public class Lobby{
             }
         } while (!ArePlayersReady());
         state.get(new ActualField("Open"));
-        space.put("Status","Closed");
+        space.put("Status", "Closed");
     }
 
     private boolean ArePlayersReady() {
