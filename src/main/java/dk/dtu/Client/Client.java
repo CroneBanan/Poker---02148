@@ -48,17 +48,19 @@ public class Client {
         GameStateListener listener = new GameStateListener(channel);
         listener.start();
         String playerAction = null;
+        initialGame(listener, screen);
         while (true) {
             updateGame(listener, screen);
             userInput.tryQueuePrompt("Action","What do you want to do? Raise <val>, Check, Fold? \n");
             if (!userInput.isInputReady("Action")) {
                 continue;
             }
-            playerAction = userInput.getInput("Action").trim().toLowerCase();
+
+            playerAction = userInput.getInput("Action").trim();
             String ActionType = playerAction.split(" ")[0].trim();
             int val = 0;
             try {
-                if (ActionType.equals("raise")) {
+                if (ActionType.equals("Raise")) {
                     val = Integer.parseInt(playerAction.split(" ")[1].trim());
                 }
             } catch (Exception e) {
@@ -68,24 +70,17 @@ public class Client {
             //do client validation
 
             //do action
+            action(channel, ActionType, val);
 
             //get action feedback
-
+            String feedback = (String) channel.get(new ActualField("Action Feedback"), new FormalField(String.class))[1];
             //handle action feedback:
-            //if valid:
-            // then action succeeded
-            // else: "invalid action. Try again".
-            //continue
-
-
-
-
-
-
-
-            //getPlayerAction(channel, userInput);
-
-
+            if(feedback.equals("Invalid Action")) {
+                System.out.println("Invalid action. Try again");
+                continue;
+            } else {
+                System.out.println("You performed action: " + ActionType);
+            }
         }
 
         /*
@@ -107,7 +102,18 @@ public class Client {
     }
 
     public static void updateGame(GameStateListener listener, Screen screen) throws InterruptedException {
+        if (listener.getGameStateUpdate().queryp(new ActualField("Update")) != null) {
+            listener.getGameStateUpdate().get(new ActualField("Update"));
+
+            PokerInfo game = listener.getNewestGameState();
+            if (game != null) {
+                screen.show(game);
+            }
+        }
+    }
+    public static void initialGame(GameStateListener listener, Screen screen) throws InterruptedException {
         listener.getGameStateUpdate().get(new ActualField("Update"));
+
         PokerInfo game = listener.getNewestGameState();
         if (game != null) {
             screen.show(game);
