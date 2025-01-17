@@ -156,22 +156,31 @@ public class Poker implements Runnable {
     }
 
     public ArrayList<Player> findWinners() {
-        ArrayList<Player> winners = new ArrayList<>();
-        Card[] player1Hand = ArrayUtils.addAll(players.get(0).getHand(), cardsInPlay.getCards());
-        Card[] player2Hand = ArrayUtils.addAll(players.get(1).getHand(), cardsInPlay.getCards());
-
         IHandComparator comparator = new HandComparator();
-        ComparisonResult result = comparator.compareFinalHands(player1Hand, player2Hand);
-        if (result == ComparisonResult.Larger) {
-            winners.add(players.get(0));
-        } else if (result == ComparisonResult.Smaller) {
-            winners.add(players.get(1));
-        } else {
-            winners.add(players.get(0));
-            winners.add(players.get(1));
+        ArrayList<Player> winners = new ArrayList<>();
+        Player firstPlayer = players.get(0);
+        winners.add(firstPlayer);
+        Card[] winnerHand = ArrayUtils.addAll(firstPlayer.getHand(), cardsInPlay.getCards());
+        for (int i = 1; i < players.size(); i++) {
+            Player currentPlayer = players.get(i);
+            Card[] currentHand = ArrayUtils.addAll(currentPlayer.getHand(), cardsInPlay.getCards());
+            switch (comparator.compareFinalHands(winnerHand, currentHand)) {
+                case Larger -> {
+                    //do nothing
+                }
+                case Smaller -> {
+                    winners.clear();
+                    winners.add(currentPlayer);
+                    winnerHand = ArrayUtils.addAll(currentPlayer.getHand(), cardsInPlay.getCards());
+                }
+                case Equal -> {
+                    winners.add(currentPlayer);
+                }
+            }
         }
         return winners;
     }
+
 
     public void distributePot(ArrayList<Player> winners) {
         for (Player p : winners) {
