@@ -49,11 +49,9 @@ public class Client {
         listener.start();
 
         while (true) {
-            listener.getGameStateUpdate().get(new ActualField("Update"));
-            PokerInfo game = listener.getNewestGameState();
-            if (game != null) {
-                screen.show(game);
-            }
+            updateGame(listener, screen);
+
+            getPlayerAction(channel, userInput);
         }
 
         /*
@@ -72,6 +70,14 @@ public class Client {
         //Object[] cards = channel.get(new ActualField("Cards"), new FormalField(Card.class));
         //System.out.println(cards[0].toString());
         //System.out.println(cards[1].toString());
+    }
+
+    public static void updateGame(GameStateListener listener, Screen screen) throws InterruptedException {
+        listener.getGameStateUpdate().get(new ActualField("Update"));
+        PokerInfo game = listener.getNewestGameState();
+        if (game != null) {
+            screen.show(game);
+        }
     }
 
     // OBS skal nok bruge en playerInfo klasse som har det her navn.
@@ -105,19 +111,40 @@ public class Client {
 
     }
 
-    public static void getPlayerAction(RemoteSpace channel, Space instructions, Space inputs) throws InterruptedException {
+    public String getActionType(UserInput userInput) throws InterruptedException {
+        userInput.queuePrompt("Action","What do you want to do? Raise, Check, Fold? \n");
+        return userInput.getInput("Action");
+    }
+
+    public static void getPlayerAction(RemoteSpace channel, UserInput userInput) throws InterruptedException {
+        String feedback;
         do {
-            instructions.put("Action","What do you want to do? Raise, Check, Fold? \n");
-            String playerAction = (String) inputs.get(new ActualField("Action"),new FormalField(String.class))[1];
-            if (playerAction.equals("Raise")) {
-                instructions.put("Raise", "How much do you wanna bet?");
-                String Sbet = (String) inputs.get(new ActualField("Raise"), new FormalField(String.class))[1];
-                int bet = Integer.parseInt(Sbet);
-                action(channel, playerAction, bet);
-            } else {
-                action(channel, playerAction, 0);
-            }
-        } while(validateAction());
+            do {
+                userInput.queuePrompt("Action","What do you want to do? Raise, Check, Fold? \n");
+                //1
+                String playerAction = userInput.getInput("Action");
+                if (playerAction.equals("Raise")) {
+                    int bet = 0;
+                    do {
+                        userInput.queuePrompt("Raise", "How much do you wanna bet?");
+                        //2
+                        String Sbet = userInput.getInput("Raise");
+                        try{
+                            bet = Integer.parseInt(Sbet);
+                        }catch (Exception e) {
+                            System.out.println("Input an integer");
+                        }
+                    }while(bet == 0);
+                    action(channel, playerAction, bet);
+                    break;
+                } else {
+                    action(channel, playerAction, 0);
+                    break;
+                }
+            } while(validateAction());
+            feedback = (String) channel.get(new ActualField("Action Feedback"), new FormalField(String.class))[1];
+        } while (!feedback.equals("Valid Action"));
+
     }
 
     private static boolean validateAction() {

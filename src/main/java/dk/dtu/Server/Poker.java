@@ -33,37 +33,44 @@ public class Poker implements Runnable {
             player.setSpace(uri + player.getUriPart() + "?conn");
             player.setCashInCents(10000);
         }
+        /*
         players.get(0).getSpace().put("Action","Raise",1000);
         for (int i = 0; i < 10; i++) {
             players.get(0).getSpace().put("Action","Check",0);
             players.get(1).getSpace().put("Action","Check",0);
         }
+        */
         this.players.setObjects(players);
         this.blindOrder.setObjects(players);
     }
+
     public void doPlayerTurn() throws InterruptedException {
         Player p = players.getNext();
         //getTurnToken
         turn.get(new ActualField(p.getId()));
         //getAction if playing
-        if (!p.getStatus().equals("Fold")) {
-            Object[] action = p.getSpace().get(
-                    new ActualField("Action"),
-                    new FormalField(String.class),
-                    new FormalField((Integer.class))
-            );
-            String actionType = (String) action[1];
-            int val = (int) action[2];
-            //if(isValidAction)
-            if (isActionValid(p, actionType, val)) {
-                // then: do player action() and put 'Valid Action'
-                playerAction(p, actionType, val);
-                p.getSpace().put("Action Feedback", "Valid Action");
-            } else {
-                //else put 'Invalid action'
-                p.getSpace().put("Action Feedback", "Invalid Action");
+        boolean valid = false;
+        do{
+            if (!p.getStatus().equals("Fold")) {
+                Object[] action = p.getSpace().get(
+                        new ActualField("Action"),
+                        new FormalField(String.class),
+                        new FormalField((Integer.class))
+                );
+                String actionType = (String) action[1];
+                int val = (int) action[2];
+                //if(isValidAction)
+                valid = isActionValid(p, actionType, val);
+                if (valid) {
+                    // then: do player action() and put 'Valid Action'
+                    playerAction(p, actionType, val);
+                    p.getSpace().put("Action Feedback", "Valid Action");
+                } else {
+                    //else put 'Invalid action'
+                    p.getSpace().put("Action Feedback", "Invalid Action");
+                }
             }
-        }
+        }while (!valid);
         //putTurnToken
         turn.put(players.get(0).getId());
         signalGameStateChange();
