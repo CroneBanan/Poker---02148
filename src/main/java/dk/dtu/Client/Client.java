@@ -12,14 +12,17 @@ import java.util.List;
 
 public class Client {
     public static void main(String[] args) throws Exception {
+        Screen screen = new Screen();
         UserInput userInput = new UserInput();
         userInput.start();
         String ip = "localhost";
         int port = 7324;
         String uri = "tcp://" + ip + ":" + port;
+        screen.welcomeScreen();
         userInput.tryQueuePrompt("getName","What is your name? \n");
         String playerName = userInput.getInput("getName");
         RemoteSpace channel = connect(playerName, uri);
+        screen.lobbyScreen();
         userInput.queuePrompt("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
         while (channel.queryp(new ActualField("lobbyState"),new ActualField("Closed")) == null) {
             if(userInput.isInputReady("lobbyAction")) {
@@ -47,7 +50,7 @@ public class Client {
 
         for(int i = 0; i < 100; i++) {
             PokerInfo game = getGameInfo(channel);
-            new Display(game).show();
+            screen.show(game);
         }
 
         //ready(channel);
