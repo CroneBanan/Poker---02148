@@ -41,7 +41,11 @@ public class PokerInfo {
         return highestBet;
     }
 
-    public String getCurrentPlayer() {
+    public String currentPlayerToString() {
         return currentPlayer.getName() + " (" + currentPlayer.getId() + ")";
+    }
+
+    public PlayerInfo getCurrentPlayer() {
+        return currentPlayer;
     }
 }

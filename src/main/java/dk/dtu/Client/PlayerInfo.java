@@ -12,6 +12,7 @@ public class PlayerInfo {
     private int bet;
     private String status;
     private int turnPosition;
+    private double cashInDollars;
 
     public PlayerInfo(int id, String name, int cashInCents, CardInfo[] hand, int bet, String status, int turnPosition) {
         this.id = id;
@@ -21,6 +22,7 @@ public class PlayerInfo {
         this.bet = bet;
         this.status = status;
         this.turnPosition = turnPosition;
+        this.cashInDollars = cashInCents / 100;
     }
 
     public PlayerInfo(int id, String name, int cashInCents, int bet, String status, int turnPosition) {
@@ -44,6 +46,10 @@ public class PlayerInfo {
         return cashInCents;
     }
 
+    public double getCashInDollars() {
+        return cashInDollars;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -55,4 +61,5 @@ public class PlayerInfo {
     public CardInfo[] getHand() {
         return hand;
     }
+
 }
