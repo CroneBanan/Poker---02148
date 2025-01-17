@@ -47,11 +47,45 @@ public class Client {
         channel.query(new ActualField("lobbyState"),new ActualField("Closed"));
         GameStateListener listener = new GameStateListener(channel);
         listener.start();
-
+        String playerAction = null;
         while (true) {
             updateGame(listener, screen);
+            userInput.tryQueuePrompt("Action","What do you want to do? Raise <val>, Check, Fold? \n");
+            if (!userInput.isInputReady("Action")) {
+                continue;
+            }
+            playerAction = userInput.getInput("Action").trim().toLowerCase();
+            String ActionType = playerAction.split(" ")[0].trim();
+            int val = 0;
+            try {
+                if (ActionType.equals("raise")) {
+                    val = Integer.parseInt(playerAction.split(" ")[1].trim());
+                }
+            } catch (Exception e) {
+                System.out.println("use of Raise is Raise <val> eg Raise 20");
+                continue;
+            }
+            //do client validation
 
-            getPlayerAction(channel, userInput);
+            //do action
+
+            //get action feedback
+
+            //handle action feedback:
+            //if valid:
+            // then action succeeded
+            // else: "invalid action. Try again".
+            //continue
+
+
+
+
+
+
+
+            //getPlayerAction(channel, userInput);
+
+
         }
 
         /*
@@ -115,6 +149,7 @@ public class Client {
         userInput.queuePrompt("Action","What do you want to do? Raise, Check, Fold? \n");
         return userInput.getInput("Action");
     }
+
 
     public static void getPlayerAction(RemoteSpace channel, UserInput userInput) throws InterruptedException {
         String feedback;
