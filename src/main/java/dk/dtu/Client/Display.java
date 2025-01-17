@@ -41,8 +41,12 @@ public class Display {
         for(PlayerInfo player: players) {
             if(player.getHand() != null) {
                 cardStackToString(player.getHand());
+                System.out.println("\n" + player.getName() + ":" + player.getStatus());
+                System.out.println("Cash:"+player.getCashInCents());
+                System.out.println("Current Bet:" + player.getBet());
             }
         }
+
     }
 
     public void cardStackToString(CardInfo[] stack) {

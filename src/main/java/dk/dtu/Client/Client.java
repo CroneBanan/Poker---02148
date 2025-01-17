@@ -41,12 +41,13 @@ public class Client {
         userInput.getInput("lobbyAction");
         //userInput.restart();
 
-
         channel.query(new ActualField("lobbyState"),new ActualField("Closed"));
 
-
-        for(int i = 0; i < 100; i++) {
-            PokerInfo game = getGameInfo(channel);
+        PokerInfo game = getGameInfo(channel);
+        new Display(game).show();
+        while(true) {
+            getPlayerAction(channel, userInput);
+            game = getGameInfo(channel);
             new Display(game).show();
         }
 
@@ -152,19 +153,33 @@ public class Client {
 
     }
 
-    public static void getPlayerAction(RemoteSpace channel, Space instructions, Space inputs) throws InterruptedException {
+    public static void getPlayerAction(RemoteSpace channel, UserInput userInput) throws InterruptedException {
+        String feedback;
         do {
-            instructions.put("Action","What do you want to do? Raise, Check, Fold? \n");
-            String playerAction = (String) inputs.get(new ActualField("Action"),new FormalField(String.class))[1];
-            if (playerAction.equals("Raise")) {
-                instructions.put("Raise", "How much do you wanna bet?");
-                String Sbet = (String) inputs.get(new ActualField("Raise"), new FormalField(String.class))[1];
-                int bet = Integer.parseInt(Sbet);
-                action(channel, playerAction, bet);
-            } else {
-                action(channel, playerAction, 0);
-            }
-        } while(validateAction());
+            do {
+                userInput.queuePrompt("Action","What do you want to do? Raise, Check, Fold? \n");
+                String playerAction = userInput.getInput("Action");
+                if (playerAction.equals("Raise")) {
+                    int bet = 0;
+                    do {
+                        userInput.queuePrompt("Raise", "How much do you wanna bet?");
+                        String Sbet = userInput.getInput("Raise");
+                        try{
+                            bet = Integer.parseInt(Sbet);
+                        }catch (Exception e) {
+                            System.out.println("Input an integer");
+                        }
+                    }while(bet == 0);
+                    action(channel, playerAction, bet);
+                    break;
+                } else {
+                    action(channel, playerAction, 0);
+                    break;
+                }
+            } while(validateAction());
+             feedback = (String) channel.get(new ActualField("Action Feedback"), new FormalField(String.class))[1];
+        } while (!feedback.equals("Valid Action"));
+
     }
 
     private static boolean validateAction() {
