@@ -2,6 +2,7 @@ package dk.dtu.Client;
 
 import dk.dtu.Common.Card;
 import dk.dtu.Common.Suite;
+import dk.dtu.Server.Poker;
 import dk.dtu.Server.ShuffledDeck;
 import org.jspace.*;
 
@@ -48,9 +49,12 @@ public class Client {
         GameStateListener listener = new GameStateListener(channel);
         listener.start();
         String playerAction = null;
-        initialGame(listener, screen);
+        PokerInfo game = updateGame(listener, screen);
         while (true) {
-            updateGame(listener, screen);
+            if (listener.getGameStateUpdate().queryp(new ActualField("Update")) != null) {
+                game = updateGame(listener, screen);
+                System.out.println("What do you want to do? Raise <val>, Check, Fold? \n");
+            }
             userInput.tryQueuePrompt("Action","What do you want to do? Raise <val>, Check, Fold? \n");
             if (!userInput.isInputReady("Action")) {
                 continue;
@@ -68,10 +72,15 @@ public class Client {
                 continue;
             }
             //do client validation
+            if (!validateAction(game, ActionType, val)){
+                System.out.println("");
+                continue;
+            } else {
+                System.out.println();
+            }
 
             //do action
             action(channel, ActionType, val);
-
             //get action feedback
             String feedback = (String) channel.get(new ActualField("Action Feedback"), new FormalField(String.class))[1];
             //handle action feedback:
@@ -101,23 +110,15 @@ public class Client {
         //System.out.println(cards[1].toString());
     }
 
-    public static void updateGame(GameStateListener listener, Screen screen) throws InterruptedException {
-        if (listener.getGameStateUpdate().queryp(new ActualField("Update")) != null) {
-            listener.getGameStateUpdate().get(new ActualField("Update"));
-
-            PokerInfo game = listener.getNewestGameState();
-            if (game != null) {
-                screen.show(game);
-            }
-        }
-    }
-    public static void initialGame(GameStateListener listener, Screen screen) throws InterruptedException {
+    public static PokerInfo updateGame(GameStateListener listener, Screen screen) throws InterruptedException {
         listener.getGameStateUpdate().get(new ActualField("Update"));
 
         PokerInfo game = listener.getNewestGameState();
         if (game != null) {
             screen.show(game);
         }
+        return game;
+
     }
 
     // OBS skal nok bruge en playerInfo klasse som har det her navn.
@@ -157,39 +158,16 @@ public class Client {
     }
 
 
-    public static void getPlayerAction(RemoteSpace channel, UserInput userInput) throws InterruptedException {
-        String feedback;
-        do {
-            do {
-                userInput.queuePrompt("Action","What do you want to do? Raise, Check, Fold? \n");
-                //1
-                String playerAction = userInput.getInput("Action");
-                if (playerAction.equals("Raise")) {
-                    int bet = 0;
-                    do {
-                        userInput.queuePrompt("Raise", "How much do you wanna bet?");
-                        //2
-                        String Sbet = userInput.getInput("Raise");
-                        try{
-                            bet = Integer.parseInt(Sbet);
-                        }catch (Exception e) {
-                            System.out.println("Input an integer");
-                        }
-                    }while(bet == 0);
-                    action(channel, playerAction, bet);
-                    break;
-                } else {
-                    action(channel, playerAction, 0);
-                    break;
-                }
-            } while(validateAction());
-            feedback = (String) channel.get(new ActualField("Action Feedback"), new FormalField(String.class))[1];
-        } while (!feedback.equals("Valid Action"));
-
-    }
-
-    private static boolean validateAction() {
-        //TODO: Action skal valideres, selvom det ikke er spillerens tur.
+    private static boolean validateAction(PokerInfo game, String ActionType, int val) {
+        PlayerInfo currentPlayer = game.getCurrentPlayer();
+        switch (ActionType) {
+            case "Raise":
+                return currentPlayer.getCashInCents() >= val && game.getHighestBet() <= val + currentPlayer.getBet();
+            case "Check":
+                return game.getHighestBet() == currentPlayer.getBet();
+            case "Fold":
+                return true;
+        }
         return true;
 
     }
