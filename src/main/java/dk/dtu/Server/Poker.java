@@ -201,6 +201,7 @@ public class Poker implements Runnable {
     }
 
     public void startGame() throws Exception {
+        //TODO: add while loop - så længe der er spillere med
         deck = new ShuffledDeck();
         new Thread(new StateSender(this, changeSignal)).start();
 
@@ -216,6 +217,8 @@ public class Poker implements Runnable {
 
         ArrayList<Player> winners = findWinners();
         distributePot(winners);
+        //TODO: show winning hand???
+        //TODO: eliminate players
         signalGameStateChange();
         System.out.println("DONE");
     }
@@ -256,6 +259,7 @@ public class Poker implements Runnable {
 
         public void updateGameState() throws InterruptedException {
             for (Player p : players.toList()) {
+                //TODO: tilføj seneste action
                 removeGameState(p.getSpace());
                 sendGameState(p);
                 p.getSpace().put("Update");
