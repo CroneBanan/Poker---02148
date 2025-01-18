@@ -274,7 +274,7 @@ public class Poker implements Runnable {
                     p.getBetInCents(),
                     p.getStatus(),
                     getTurnNumber(p),
-                    poker.currentPlayer().equals(p)
+                    poker.currentPlayer().equals(p) //TODO: FIX - tror ikke det virker
             );
             for (Player ps : players.toList()) {
                 if (!ps.equals(p)) {
@@ -285,7 +285,7 @@ public class Poker implements Runnable {
                             ps.getBetInCents(),
                             ps.getStatus(),
                             getTurnNumber(ps),
-                            poker.currentPlayer().equals(ps)
+                            poker.currentPlayer().equals(ps) //TODO: FIX - tror ikke det virker
                     );
                 }
             }
