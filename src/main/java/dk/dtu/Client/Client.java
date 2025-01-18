@@ -3,7 +3,6 @@ package dk.dtu.Client;
 import dk.dtu.Common.Card;
 import dk.dtu.Common.Suite;
 import dk.dtu.Server.Poker;
-import dk.dtu.Server.ShuffledDeck;
 import org.jspace.*;
 
 import java.io.IOException;
@@ -41,85 +40,71 @@ public class Client {
                 userInput.tryQueuePrompt("lobbyAction","Waiting for Game to start. \navailable commands: \'ready\',\'disconnect\'");
             }
         }
-        System.out.println("Game has started. press any key and then ENTER to continue");
+        System.out.println("Game has started. press ANY KEY THEN ENTER to continue");
         userInput.getInput("lobbyAction");
-        //userInput.restart();
 
         channel.query(new ActualField("lobbyState"),new ActualField("Closed"));
+
+
+        //the actual poker game::
         GameStateListener listener = new GameStateListener(channel);
         listener.start();
-        String playerAction = null;
-        PokerInfo game = updateGame(listener, screen);
         while (true) {
-            if (listener.getGameStateUpdate().queryp(new ActualField("Update")) != null) {
-                game = updateGame(listener, screen);
-                System.out.println("What do you want to do? Raise <val>, Check, Fold? \n");
-            }
-            userInput.tryQueuePrompt("Action","What do you want to do? Raise <val>, Check, Fold? \n");
-            if (!userInput.isInputReady("Action")) {
-                continue;
-            }
-
-            playerAction = userInput.getInput("Action").trim();
-            String ActionType = playerAction.split(" ")[0].trim();
-            int val = 0;
-            try {
-                if (ActionType.equals("Raise")) {
-                    val = Integer.parseInt(playerAction.split(" ")[1].trim());
-                }
-            } catch (Exception e) {
-                System.out.println("use of Raise is Raise <val> eg Raise 20");
-                continue;
-            }
-            //do client validation
-            if (!validateAction(game, ActionType, val)){
-                System.out.println("");
-                continue;
-            } else {
-                System.out.println();
-            }
-
-            //do action
-            action(channel, ActionType, val);
-            //get action feedback
-            String feedback = (String) channel.get(new ActualField("Action Feedback"), new FormalField(String.class))[1];
-            //handle action feedback:
-            if(feedback.equals("Invalid Action")) {
-                System.out.println("Invalid action. Try again");
-                continue;
-            } else {
-                System.out.println("You performed action: " + ActionType);
-            }
+            PokerInfo game = updateGame(listener, screen,userInput);
+            handleUser(game, channel,userInput);
         }
-
-        /*
-        for(int i = 0; i < 100; i++) {
-            PokerInfo game = getGameInfo(channel);
-            screen.show(game);
-        }
-        */
-
-        //ready(channel);
-        //disconnectFromLobby(channel);
-        // String test = (String) space.get(new ActualField("hej"))[0];
-
-        //System.out.println(test);
-
-        //Object[] cards = channel.get(new ActualField("Cards"), new FormalField(Card.class));
-        //System.out.println(cards[0].toString());
-        //System.out.println(cards[1].toString());
     }
 
-    public static PokerInfo updateGame(GameStateListener listener, Screen screen) throws InterruptedException {
-        listener.getGameStateUpdate().get(new ActualField("Update"));
-
+    public static PokerInfo updateGame(GameStateListener listener, Screen screen, UserInput userInput) throws Exception {
         PokerInfo game = listener.getNewestGameState();
+        if (listener.getGameStateUpdate().queryp(new ActualField("Update")) == null) {
+            return game;
+        }
+        listener.getGameStateUpdate().get(new ActualField("Update"));
         if (game != null) {
             screen.show(game);
         }
+        userInput.rePromptCurrent();
         return game;
 
     }
+
+    public static void handleUser(PokerInfo game, RemoteSpace channel, UserInput userInput) throws InterruptedException {
+        userInput.tryQueuePrompt("Action","What do you want to do? Raise <val>, Check, Fold? \n");
+        if (!userInput.isInputReady("Action")) {
+            return;
+        }
+
+        String playerAction = userInput.getInput("Action").trim();
+        String ActionType = playerAction.split(" ")[0].trim();
+        int val = 0;
+        try {
+            if (ActionType.equals("Raise")) {
+                val = Integer.parseInt(playerAction.split(" ")[1].trim());
+            }
+        } catch (Exception e) {
+            System.out.println("use of Raise is Raise <val> eg Raise 20");
+            return;
+        }
+        //do client validation
+        if (!validateAction(game, ActionType, val)){
+            System.out.println("Invalid action. Try again");
+            return;
+        }
+
+        //do action (ie. Send it to the server)
+        action(channel, ActionType, val);
+        //get action feedback
+        String feedback = (String) channel.get(new ActualField("Action Feedback"), new FormalField(String.class))[1];
+        //handle action feedback:
+        if(feedback.equals("Invalid Action")) {
+            System.out.println("Invalid action. Try again");
+            return;
+        } else {
+            System.out.println("You performed action: " + ActionType);
+        }
+    }
+
 
     // OBS skal nok bruge en playerInfo klasse som har det her navn.
     public static RemoteSpace connect(String playerName,String uri) throws Exception{

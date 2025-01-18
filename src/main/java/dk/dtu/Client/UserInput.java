@@ -31,6 +31,18 @@ public class UserInput {
         return !inputs.queryAll(new ActualField(id), new FormalField(String.class)).isEmpty();
     }
 
+    public void rePromptCurrent() throws Exception {
+        Object[] current = currentWork.queryp(new FormalField(String.class), new FormalField(String.class));
+        if (current == null) {
+            throw new Exception("No prompt underway");
+        }
+        String currentPrompt = (String) current[1];
+        System.out.println(currentPrompt);
+    }
+
+    /**
+     * MAY work, since Scaner.hasNext MAY be blocking
+     */
     public void stop() {
         listener.interrupt();
         currentWork.getAll(
@@ -40,6 +52,9 @@ public class UserInput {
         listener = null;
     }
 
+    /**
+     * MAY work, since Scaner.hasNext MAY be blocking
+     */
     public void restart() {
         stop();
         start();
