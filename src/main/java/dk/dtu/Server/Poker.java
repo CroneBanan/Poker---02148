@@ -70,7 +70,7 @@ public class Poker implements Runnable {
                     p.getSpace().put("Action Feedback", "Invalid Action");
                 }
             }
-        }while (!valid);
+        } while (!valid);
         //putTurnToken
         turn.put(players.get(0).getId());
         signalGameStateChange();
@@ -85,16 +85,16 @@ public class Poker implements Runnable {
                 p.makeBet(val);
                 potInCents += val;
                 p.setStatus("Raise");
-                if(highestBet < val) {
-                    setHighestBet(val);
+                if(highestBet < p.getBetInCents()) {
+                    setHighestBet(p.getBetInCents());
                 }
                 break;
             case "All In":
                 potInCents += p.getCashInCents();
                 p.makeBet(p.getCashInCents());
                 p.setStatus("All In");
-                if(highestBet < val) {
-                    setHighestBet(val);
+                if(highestBet < p.getBetInCents()) {
+                    setHighestBet(p.getBetInCents());
                 }
                 break;
             case "Check":
@@ -116,7 +116,7 @@ public class Poker implements Runnable {
             case "Match":
                 return (p.enoughCash(highestBet));
         }
-        return true;
+        return false;
     }
 
     public void bettingRound() throws InterruptedException {

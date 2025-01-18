@@ -153,7 +153,7 @@ public class Client {
             case "Fold":
                 return true;
         }
-        return true;
+        return false;
 
     }
 
