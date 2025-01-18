@@ -233,7 +233,7 @@ public class Screen {
     }
 
     public String playerString(PlayerInfo playerInfo){
-        return  "Player: " + playerInfo.getName() + "\tCash: " + (double) playerInfo.getCashInCents() / 100 + "\t\tBet: " + (double) playerInfo.getBet() / 100 + "\tStatus: " + playerInfo.getStatus();
+        return  "Player: " + playerInfo.getName() + "\tCash: " + (double) playerInfo.getCashInCents() / 100 + "\t\tBet: " + (double) playerInfo.getBet() / 100 + "\tStatus: " + playerInfo.getStatus() + (playerInfo.isToMove() ? "   TO MOVE" : "");
     }
 
     public void showWinner(PlayerInfo playerInfo){

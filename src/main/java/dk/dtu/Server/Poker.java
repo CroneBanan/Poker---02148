@@ -198,6 +198,10 @@ public class Poker implements Runnable {
         potInCents = 0;
     }
 
+    public Player currentPlayer() {
+        return players.get(0);
+    }
+
     public void startGame() throws Exception {
         deck = new ShuffledDeck();
         new Thread(new StateSender(this, changeSignal)).start();
@@ -252,7 +256,8 @@ public class Poker implements Runnable {
                         p.getCashInCents(),
                         p.getBetInCents(),
                         p.getStatus(),
-                        getTurnNumber(p)
+                        getTurnNumber(p),
+                        poker.currentPlayer().equals(p)
                 );
                 for (Player ps : players.toList()) {
                     if (!ps.equals(p)) {
@@ -262,7 +267,8 @@ public class Poker implements Runnable {
                                 ps.getCashInCents(),
                                 ps.getBetInCents(),
                                 ps.getStatus(),
-                                getTurnNumber(ps)
+                                getTurnNumber(ps),
+                                poker.currentPlayer().equals(ps)
                         );
                     }
                 }

@@ -13,8 +13,9 @@ public class PlayerInfo {
     private String status;
     private int turnPosition;
     private double cashInDollars;
+    private boolean toMove;
 
-    public PlayerInfo(int id, String name, int cashInCents, CardInfo[] hand, int bet, String status, int turnPosition) {
+    public PlayerInfo(int id, String name, int cashInCents, CardInfo[] hand, int bet, String status, int turnPosition, boolean toMove) {
         this.id = id;
         this.name = name;
         this.cashInCents = cashInCents;
@@ -23,15 +24,17 @@ public class PlayerInfo {
         this.status = status;
         this.turnPosition = turnPosition;
         this.cashInDollars = cashInCents / 100;
+        this.toMove = toMove;
     }
 
-    public PlayerInfo(int id, String name, int cashInCents, int bet, String status, int turnPosition) {
+    public PlayerInfo(int id, String name, int cashInCents, int bet, String status, int turnPosition,boolean toMove) {
         this.id = id;
         this.name = name;
         this.cashInCents = cashInCents;
         this.bet = bet;
         this.status = status;
         this.turnPosition = turnPosition;
+        this.toMove = toMove;
     }
 
     public int getId() {
@@ -60,6 +63,10 @@ public class PlayerInfo {
 
     public CardInfo[] getHand() {
         return hand;
+    }
+
+    public boolean isToMove() {
+        return toMove;
     }
 
 }

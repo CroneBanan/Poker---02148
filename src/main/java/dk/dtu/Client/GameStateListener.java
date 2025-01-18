@@ -55,14 +55,16 @@ public class GameStateListener {
                     new FormalField(Integer.class),
                     new FormalField(Integer.class),
                     new FormalField(String.class),
-                    new FormalField(Integer.class)
+                    new FormalField(Integer.class),
+                    new FormalField(Boolean.class)
             );
             CardInfo[] hand = new CardInfo[]{
                     new CardInfo((int) t[2], (String) t[3]),
                     new CardInfo((int) t[4], (String) t[5])};
             return new PlayerInfo(
                     (int) t[6], (String) t[7], (int) t[8], hand,
-                    (int) t[9], (String) t[10], (int) t[11]);
+                    (int) t[9], (String) t[10], (int) t[11],
+                    (boolean) t[12]);
         }
 
         public static PokerInfo getGameInfo(Space channel) throws InterruptedException {
@@ -74,12 +76,17 @@ public class GameStateListener {
                     new FormalField(Integer.class),
                     new FormalField(Integer.class),
                     new FormalField(String.class),
-                    new FormalField(Integer.class)
+                    new FormalField(Integer.class),
+                    new FormalField(Boolean.class)
             );
             ArrayList<PlayerInfo> players = new ArrayList<>();
             for (Object[] t : ps) {
-                players.add(new PlayerInfo((int) t[2], (String) t[3], (int) t[4],
-                        (int) t[5], (String) t[6], (int) t[7]));
+                players.add(
+                        new PlayerInfo(
+                            (int) t[2], (String) t[3], (int) t[4],
+                            (int) t[5], (String) t[6], (int) t[7], (boolean) t[8]
+                        )
+                );
             }
             PlayerInfo currentPlayer = getPlayerInfo(channel);
             players.add(currentPlayer);
