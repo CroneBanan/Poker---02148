@@ -37,6 +37,10 @@ public class PlayerInfo {
         this.toMove = toMove;
     }
 
+    public int getTurnPosition() {
+        return turnPosition;
+    }
+
     public int getId() {
         return id;
     }

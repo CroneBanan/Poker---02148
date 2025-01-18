@@ -5,6 +5,9 @@ import dk.dtu.Server.CircularList;
 import dk.dtu.Server.Player;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class PokerInfo {
     private ArrayList<PlayerInfo> players;
@@ -18,7 +21,8 @@ public class PokerInfo {
                      int pot,
                      CardInfo[] cardsInPlay,
                      int highestBet) {
-        this.players = players;
+        this.players =  players;
+        players.sort(Comparator.comparing(PlayerInfo::getTurnPosition));
         this.currentPlayer = currentPlayer;
         this.pot = pot;
         this.cardsInPlay = cardsInPlay;
@@ -48,4 +52,6 @@ public class PokerInfo {
     public PlayerInfo getCurrentPlayer() {
         return currentPlayer;
     }
+
+
 }

@@ -1,13 +1,11 @@
 package dk.dtu.Server;
 
 import dk.dtu.Common.Card;
-import dk.dtu.Common.ComparisonResult;
 import dk.dtu.Common.HandComparator;
 import dk.dtu.Common.IHandComparator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jspace.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -244,43 +242,99 @@ public class Poker implements Runnable {
             this.signalChange = signalChange;
         }
 
-        public void sendGameState() throws InterruptedException {
-            for (Player p : players.toList()) {
-                p.getSpace().put("State", "Player",
-                        p.getHand()[0].getValue(),
-                        p.getHand()[0].getSuite().toString(),
-                        p.getHand()[1].getValue(),
-                        p.getHand()[1].getSuite().toString(),
-                        p.getId(),
-                        p.getName(),
-                        p.getCashInCents(),
-                        p.getBetInCents(),
-                        p.getStatus(),
-                        getTurnNumber(p),
-                        poker.currentPlayer().equals(p)
-                );
-                for (Player ps : players.toList()) {
-                    if (!ps.equals(p)) {
-                        p.getSpace().put("State", "Opponents",
-                                ps.getId(),
-                                ps.getName(),
-                                ps.getCashInCents(),
-                                ps.getBetInCents(),
-                                ps.getStatus(),
-                                getTurnNumber(ps),
-                                poker.currentPlayer().equals(ps)
-                        );
-                    }
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    signalChange.get(new ActualField("Update"));
+                    updateGameState();
                 }
-                p.getSpace().put("State", "Game state",
-                        cardsInPlay.get(0).getValue(), cardsInPlay.get(0).getSuite().toString(),
-                        cardsInPlay.get(1).getValue(), cardsInPlay.get(1).getSuite().toString(),
-                        cardsInPlay.get(2).getValue(), cardsInPlay.get(2).getSuite().toString(),
-                        cardsInPlay.get(3).getValue(), cardsInPlay.get(3).getSuite().toString(),
-                        cardsInPlay.get(4).getValue(), cardsInPlay.get(4).getSuite().toString(),
-                        potInCents, highestBet);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public void updateGameState() throws InterruptedException {
+            for (Player p : players.toList()) {
+                removeGameState(p.getSpace());
+                sendGameState(p);
                 p.getSpace().put("Update");
             }
+        }
+
+        public void sendGameState(Player p) throws InterruptedException {
+            p.getSpace().put("State", "Player",
+                    p.getHand()[0].getValue(),
+                    p.getHand()[0].getSuite().toString(),
+                    p.getHand()[1].getValue(),
+                    p.getHand()[1].getSuite().toString(),
+                    p.getId(),
+                    p.getName(),
+                    p.getCashInCents(),
+                    p.getBetInCents(),
+                    p.getStatus(),
+                    getTurnNumber(p),
+                    poker.currentPlayer().equals(p)
+            );
+            for (Player ps : players.toList()) {
+                if (!ps.equals(p)) {
+                    p.getSpace().put("State", "Opponents",
+                            ps.getId(),
+                            ps.getName(),
+                            ps.getCashInCents(),
+                            ps.getBetInCents(),
+                            ps.getStatus(),
+                            getTurnNumber(ps),
+                            poker.currentPlayer().equals(ps)
+                    );
+                }
+            }
+            p.getSpace().put("State", "Game state",
+                    cardsInPlay.get(0).getValue(), cardsInPlay.get(0).getSuite().toString(),
+                    cardsInPlay.get(1).getValue(), cardsInPlay.get(1).getSuite().toString(),
+                    cardsInPlay.get(2).getValue(), cardsInPlay.get(2).getSuite().toString(),
+                    cardsInPlay.get(3).getValue(), cardsInPlay.get(3).getSuite().toString(),
+                    cardsInPlay.get(4).getValue(), cardsInPlay.get(4).getSuite().toString(),
+                    potInCents, highestBet);
+        }
+
+        public void removeGameState(Space channel) throws InterruptedException {
+            channel.getp(
+                    new ActualField("State"),
+                    new ActualField("Game state"),
+                    new FormalField(Integer.class), new FormalField(String.class),
+                    new FormalField(Integer.class), new FormalField(String.class),
+                    new FormalField(Integer.class), new FormalField(String.class),
+                    new FormalField(Integer.class), new FormalField(String.class),
+                    new FormalField(Integer.class), new FormalField(String.class),
+                    new FormalField(Integer.class), new FormalField(Integer.class)
+            );
+            channel.getAll(
+                    new ActualField("State"),
+                    new ActualField("Opponents"),
+                    new FormalField(Integer.class),
+                    new FormalField(String.class),
+                    new FormalField(Integer.class),
+                    new FormalField(Integer.class),
+                    new FormalField(String.class),
+                    new FormalField(Integer.class),
+                    new FormalField(Boolean.class)
+            );
+            channel.getp(
+                    new ActualField("State"),
+                    new ActualField("Player"),
+                    new FormalField(Integer.class),
+                    new FormalField(String.class),
+                    new FormalField(Integer.class),
+                    new FormalField(String.class),
+                    new FormalField(Integer.class),
+                    new FormalField(String.class),
+                    new FormalField(Integer.class),
+                    new FormalField(Integer.class),
+                    new FormalField(String.class),
+                    new FormalField(Integer.class),
+                    new FormalField(Boolean.class)
+            );
         }
 
         public int getTurnNumber(Player p) {
@@ -292,17 +346,7 @@ public class Poker implements Runnable {
             return blindOrder.size();
         }
 
-        @Override
-        public void run() {
-            try {
-                while (true) {
-                    signalChange.get(new ActualField("Update"));
-                    sendGameState();
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
+
     }
 }
 

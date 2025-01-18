@@ -43,7 +43,7 @@ public class GameStateListener {
         }
 
         public static PlayerInfo getPlayerInfo(Space channel) throws InterruptedException {
-            Object[] t = channel.get(
+            Object[] t = channel.query(
                     new ActualField("State"),
                     new ActualField("Player"),
                     new FormalField(Integer.class),
@@ -68,7 +68,7 @@ public class GameStateListener {
         }
 
         public static PokerInfo getGameInfo(Space channel) throws InterruptedException {
-            List<Object[]> ps = channel.getAll(
+            List<Object[]> ps = channel.queryAll(
                     new ActualField("State"),
                     new ActualField("Opponents"),
                     new FormalField(Integer.class),
@@ -91,7 +91,7 @@ public class GameStateListener {
             PlayerInfo currentPlayer = getPlayerInfo(channel);
             players.add(currentPlayer);
             CardInfo[] cardsInPlay = new CardInfo[5];
-            Object[] t = channel.get(
+            Object[] t = channel.query(
                     new ActualField("State"),
                     new ActualField("Game state"),
                     new FormalField(Integer.class), new FormalField(String.class),
