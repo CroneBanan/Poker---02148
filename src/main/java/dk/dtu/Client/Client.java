@@ -1,14 +1,6 @@
 package dk.dtu.Client;
 
-import dk.dtu.Common.Card;
-import dk.dtu.Common.Suite;
-import dk.dtu.Server.Poker;
 import org.jspace.*;
-
-import java.io.IOException;
-import java.rmi.Remote;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Client {
     public static void main(String[] args) throws Exception {
@@ -50,26 +42,36 @@ public class Client {
         GameStateListener listener = new GameStateListener(channel);
         listener.start();
         while (true) {
-            PokerInfo game = updateGame(listener, screen,userInput);
-            handleUser(game, channel,userInput);
+            PokerInfo game = updateGame(listener, screen,userInput,channel);
+            handleUser(game,channel,userInput,screen);
         }
     }
 
-    public static PokerInfo updateGame(GameStateListener listener, Screen screen, UserInput userInput) throws Exception {
+    public static PokerInfo updateGame(GameStateListener listener, Screen screen, UserInput userInput,Space channel) throws Exception {
         PokerInfo game = listener.getNewestGameState();
         if (listener.getGameStateUpdate().queryp(new ActualField("Update")) == null) {
             return game;
         }
         listener.getGameStateUpdate().get(new ActualField("Update"));
-        if (game != null) {
-            screen.show(game);
-        }
-        userInput.tryRepromptCurrent();
+        refreshScreen(game,screen,userInput,channel);
         return game;
 
     }
 
-    public static void handleUser(PokerInfo game, RemoteSpace channel, UserInput userInput) throws InterruptedException {
+    public static void refreshScreen(PokerInfo game, Screen screen,UserInput userInput, Space channel) throws Exception {
+        if (game == null) {
+            screen.clearScreen();
+            System.out.println("Game state could not be loaded");
+            return;
+        }
+
+        screen.show(game);
+        System.out.println("Queued Action: " + getQueuedAction(channel));
+        userInput.tryRepromptCurrent();
+        System.out.println();
+    }
+
+    public static void handleUser(PokerInfo game, RemoteSpace channel, UserInput userInput,Screen screen) throws Exception {
         userInput.tryQueuePrompt("Action","What do you want to do? Raise <val>, Check, Fold? \n");
         if (!userInput.isInputReady("Action")) {
             return;
@@ -93,7 +95,9 @@ public class Client {
         }
 
         //do action (ie. Send it to the server)
-        action(channel, ActionType, val);
+        setNextAction(channel, ActionType, val);
+        refreshScreen(game,screen,userInput,channel);
+        userInput.tryQueuePrompt("Action","What do you want to do? Raise <val>, Check, Fold? \n");
         //get action feedback
         String feedback = (String) channel.get(new ActualField("Action Feedback"), new FormalField(String.class))[1];
         //handle action feedback:
@@ -137,11 +141,6 @@ public class Client {
 
     }
 
-    public String getActionType(UserInput userInput) throws InterruptedException {
-        userInput.queuePrompt("Action","What do you want to do? Raise, Check, Fold? \n");
-        return userInput.getInput("Action");
-    }
-
 
     private static boolean validateAction(PokerInfo game, String ActionType, int val) {
         PlayerInfo currentPlayer = game.getCurrentPlayer();
@@ -157,8 +156,33 @@ public class Client {
 
     }
 
-    public static void action(RemoteSpace channel, String playerAction, int bet) {
+    public static String getQueuedAction(Space channel) throws InterruptedException {
+        Object[] tuple = channel.queryp(
+                new ActualField("Action"),
+                new FormalField(String.class),
+                new FormalField(Integer.class)
+        );
+        if (tuple == null) {
+            return "";
+        }
+        String actionType = (String) tuple[1];
+        String val = actionType.equals("Raise") ?  Integer.toString((int) tuple[2]) : "";
+        return actionType + " " + val;
+    }
+
+    /**
+     * Set the next action overriding any previously specified actions not yet read by the server
+     * @param channel
+     * @param playerAction
+     * @param bet
+     */
+    public static void setNextAction(RemoteSpace channel, String playerAction, int bet) {
             try {
+                channel.getAll(
+                        new ActualField("Action"),
+                        new FormalField(String.class),
+                        new FormalField(Integer.class)
+                );
                 channel.put("Action", playerAction, bet);
             } catch (InterruptedException e) {
                 e.printStackTrace();
