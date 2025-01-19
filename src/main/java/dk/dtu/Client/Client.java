@@ -64,7 +64,7 @@ public class Client {
         if (game != null) {
             screen.show(game);
         }
-        userInput.rePromptCurrent();
+        userInput.tryRepromptCurrent();
         return game;
 
     }

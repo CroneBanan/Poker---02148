@@ -14,14 +14,11 @@ public class Server {
 
     public static void main(String[] args) throws Exception {
         SpaceRepository repository = new SpaceRepository();
-        SequentialSpace gameState = new SequentialSpace();
-        repository.add("gameState", gameState);
-        SequentialSpace turnSpace = new SequentialSpace();
-        repository.add("turn", turnSpace);
-
         repository.addGate(generalUri);
+
         Lobby lobby = new Lobby("tcp://" + ip + ":" + port, repository);
         lobby.open();
+
         List<Player> players = lobby.getPlayers();
         Poker game = new Poker("tcp://" + ip + ":" + port,players);
         game.run();

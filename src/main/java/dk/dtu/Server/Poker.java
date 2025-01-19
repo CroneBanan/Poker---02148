@@ -11,19 +11,18 @@ import java.util.List;
 
 public class Poker implements Runnable {
     private Space changeSignal;
-    private RemoteSpace turn;
+    private Space turn;
     private CircularList<Player> players = new CircularList();
     private CircularList<Player> blindOrder = new CircularList();
-    //private ArrayList<Player> activePlayers = players;
     private int potInCents;
     private ShuffledDeck deck;
-    private CardsInPlay cardsInPlay = new CardsInPlay();;
+    private CardsInPlay cardsInPlay;
     private int highestBet;
     private int turnsSinceHighestBetChange = 0;
 
     public Poker(String uri, List<Player> players) throws Exception {
         this.changeSignal = new SequentialSpace();
-        this.turn = new RemoteSpace(uri + "/turn?conn");
+        this.turn = new SequentialSpace();
         this.potInCents = 0;
 
         for (int i = 0; i < 2; i++) {
@@ -31,13 +30,6 @@ public class Poker implements Runnable {
             player.setSpace(uri + player.getUriPart() + "?conn");
             player.setCashInCents(10000);
         }
-        /*
-        players.get(0).getSpace().put("Action","Raise",1000);
-        for (int i = 0; i < 10; i++) {
-            players.get(0).getSpace().put("Action","Check",0);
-            players.get(1).getSpace().put("Action","Check",0);
-        }
-        */
         this.players.setObjects(players);
         this.blindOrder.setObjects(players);
     }
@@ -49,7 +41,7 @@ public class Poker implements Runnable {
         //getAction if playing
         boolean valid = false;
         do{
-            if (!p.getStatus().equals("Fold")) {
+            if (mayDoAction(p)) {
                 Object[] action = p.getSpace().get(
                         new ActualField("Action"),
                         new FormalField(String.class),
@@ -98,17 +90,18 @@ public class Poker implements Runnable {
             case "Check":
                 p.setStatus("Check");
                 break;
+            case "Disconnect":
+                p.setStatus("Disconnected");
+                break;
         }
     }
 
     public boolean isActionValid(Player p, String actionType, int val) {
         switch (actionType) {
-            case "Fold":
+            case "Fold", "Disconnect", "All In":
                 return true;
             case "Raise":
                 return (p.enoughCash(val) && (val + p.getBetInCents()) >= highestBet);
-            case "All In":
-                return true;
             case "Check":
                 return (p.getBetInCents() == highestBet);
             case "Match":
@@ -186,6 +179,50 @@ public class Poker implements Runnable {
         return winners;
     }
 
+    public boolean mayDoAction(Player player) {
+        String status = player.getStatus();
+        return !(
+                status.equals("Fold") ||
+                status.equals("Disconnected") ||
+                status.equals("Eliminated")
+        );
+    }
+
+    public int eliminatePlayers() {
+        if (potInCents != 0) {
+            throw new IllegalStateException("Pot must be distributed first, but is " + potInCents);
+        }
+        boolean areActiveBets = !players.toList().stream().
+                filter(p -> p.getBetInCents() != 0).toList().
+                isEmpty();
+        if (areActiveBets) {
+            throw new IllegalStateException("all bets must have been finished, but not all players bets are 0");
+        }
+
+        int eliminations = 0;
+        for (Player player : players.toList()) {
+            if (player.getCashInCents() <= 0) {
+                player.setStatus("Eliminated");
+                eliminations++;
+            }
+        }
+        return eliminations;
+    }
+
+    public boolean isPlayerActive(Player player) {
+        String status = player.getStatus();
+        return  !(status.equals("Elimination") || status.equals("Disconnected"));
+    }
+
+    public void resetPlayers() {
+        for (Player player : players.toList()) {
+            if (isPlayerActive(player)) {
+                player.setStatus("ready");
+                player.setHand(null);
+            }
+        }
+    }
+
 
     public void distributePot(ArrayList<Player> winners) {
         for (Player p : winners) {
@@ -202,24 +239,30 @@ public class Poker implements Runnable {
 
     public void startGame() throws Exception {
         //TODO: add while loop - så længe der er spillere med
-        deck = new ShuffledDeck();
+
         new Thread(new StateSender(this, changeSignal)).start();
 
-        setBlinds();
-        dealCards();
-        bettingRound();
-        cardsInPlay.flop(deck);
-        bettingRound();
-        cardsInPlay.turn(deck);
-        bettingRound();
-        cardsInPlay.river(deck);
-        bettingRound();
+        while (players.toList().stream().filter(this::isPlayerActive).toList().size() > 1) {
+            deck = new ShuffledDeck();
+            cardsInPlay = new CardsInPlay();
+            resetPlayers();
 
-        ArrayList<Player> winners = findWinners();
-        distributePot(winners);
-        //TODO: show winning hand???
-        //TODO: eliminate players
-        signalGameStateChange();
+            setBlinds();
+            dealCards();
+            bettingRound();
+            cardsInPlay.flop(deck);
+            bettingRound();
+            cardsInPlay.turn(deck);
+            bettingRound();
+            cardsInPlay.river(deck);
+            bettingRound();
+
+            ArrayList<Player> winners = findWinners();
+            distributePot(winners);
+            //TODO: show winning hand???
+            eliminatePlayers();
+            signalGameStateChange();
+        }
         System.out.println("DONE");
     }
 
