@@ -80,7 +80,7 @@ public class Poker implements Runnable {
                 p.setStatus("Fold");
                 break;
             case "Raise":
-                p.makeBet(val);
+                p.addToBet(val);
                 potInCents += val;
                 p.setStatus("Raise");
                 if(highestBet < p.getBetInCents()) {
@@ -89,7 +89,7 @@ public class Poker implements Runnable {
                 break;
             case "All In":
                 potInCents += p.getCashInCents();
-                p.makeBet(p.getCashInCents());
+                p.addToBet(p.getCashInCents());
                 p.setStatus("All In");
                 if(highestBet < p.getBetInCents()) {
                     setHighestBet(p.getBetInCents());
@@ -143,9 +143,9 @@ public class Poker implements Runnable {
     }
 
     public void setBlinds() {
-        blindOrder.getNext().makeBet(1000);
+        blindOrder.getNext().addToBet(1000);
         potInCents += 1000;
-        blindOrder.get(0).makeBet(2000);
+        blindOrder.get(0).addToBet(2000);
         potInCents += 2000;
         setHighestBet(2000);
     }

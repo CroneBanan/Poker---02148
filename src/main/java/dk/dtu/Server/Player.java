@@ -1,7 +1,6 @@
 package dk.dtu.Server;
 
 import dk.dtu.Common.Card;
-import org.jspace.RemoteSpace;
 import org.jspace.SequentialSpace;
 import org.jspace.Space;
 
@@ -39,6 +38,9 @@ public class Player {
     }
 
     public void setCashInCents(int cents) {
+        if (cents < 0) {
+            throw new IllegalArgumentException("Cash must be positive, not " + cents);
+        }
         this.cashInCents = cents;
     }
 
@@ -78,11 +80,13 @@ public class Player {
         return uriPart;
     }
 
-    public void makeBet(int bet) {
+    public void addToBet(int bet) {
         if (enoughCash(bet)) {
             this.cashInCents -= bet;
             this.betInCents += bet;
-            isAllIn();
+            if (cashInCents == 0) {
+                setStatus("All in");
+            }
         }
     }
 
@@ -103,15 +107,11 @@ public class Player {
         incrementer++;
     }
 
-    public void isAllIn() {
-        if (betInCents == cashInCents) {
-            setStatus("All in");
-        }
-    }
 
     public void addCashInCents(int winningsInCents) {
         this.cashInCents += winningsInCents;
     }
+
 
     public Space getChannel() {
         return channel;
